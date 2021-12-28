@@ -1,0 +1,8 @@
+#Virtual environment
+env*/
+
+#IDE
+.idea/
+
+#Telegram bot token file
+config/token
