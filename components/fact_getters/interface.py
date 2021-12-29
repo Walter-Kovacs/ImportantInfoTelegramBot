@@ -1,15 +1,18 @@
-import attr
 import enum
 from typing import Protocol
+from attrs import define
 
-@attr.s
+
+@define
 class HeaderAndContentFactRepr:
-    header: str = attr.ib()
-    content: str = attr.ib()
+    header: str
+    content: str
+
 
 class Fact(Protocol):
     def render_hac(self) -> HeaderAndContentFactRepr:
         pass
+
 
 class FactGetter(Protocol):
     @classmethod
