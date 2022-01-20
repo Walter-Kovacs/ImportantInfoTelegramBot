@@ -1,5 +1,6 @@
 import enum
 from typing import Protocol
+
 from attrs import define
 
 

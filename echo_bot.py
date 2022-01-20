@@ -1,7 +1,8 @@
 import logging
 
 from telegram import Update
-from telegram.ext import CallbackContext, CommandHandler, Filters, MessageHandler, Updater
+from telegram.ext import (CallbackContext, CommandHandler, Filters,
+                          MessageHandler, Updater)
 
 with open('config/token', 'r') as f:
     TOKEN = f.readline()
@@ -13,10 +14,14 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 
 def start(update: Update, context: CallbackContext):
+    if update.effective_chat is None:
+        return
     context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, pleas talk to me!")
 
 
 def echo(update: Update, context: CallbackContext):
+    if update.effective_chat is None or update.message is None:
+        return
     context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
 
 
