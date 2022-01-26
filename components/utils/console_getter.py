@@ -1,9 +1,10 @@
-import sys
 import random
+import sys
+from typing import List
+
+from components.fact_getters.interface import Fact, FactGetter
 from components.fact_getters.panorama import PanoramaFactGetter
 from components.fact_getters.stub import StubFactGetter
-from typing import List
-from components.fact_getters.interface import Fact, FactGetter
 
 fact_battarey: List[FactGetter] = [PanoramaFactGetter(), StubFactGetter()]
 

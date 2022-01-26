@@ -1,10 +1,12 @@
-import requests
 import enum
 import random
-from attrs import define, Factory, field
-from typing import List, Dict, Optional, Callable, Tuple
-from components.fact_getters.interface import HeaderAndContentFactRepr, Fact
 from html.parser import HTMLParser
+from typing import Callable, Dict, List, Optional, Tuple
+
+import requests
+from attrs import Factory, define, field
+
+from components.fact_getters.interface import Fact, HeaderAndContentFactRepr
 
 
 class ArticleType(enum.Enum):

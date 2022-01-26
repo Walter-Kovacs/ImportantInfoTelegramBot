@@ -6,7 +6,9 @@ from .game_call import simple_answer
 
 
 def parse_message(update: Update, context: CallbackContext):
-    msg = update.message.text
+    if update.message is None:
+        return
+    msg = update.message.text or ""
     if msg.find("эхо") != -1:
         echo(update, context)
     if msg.find("партеечку") != -1:
