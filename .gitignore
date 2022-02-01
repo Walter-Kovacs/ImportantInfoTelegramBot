@@ -1,14 +1,17 @@
-#Virtual environment
+# Virtual environment
 env*/
 .venv
 
-#IDE
+# IDE
 .idea/
 *.swp
 
-#Telegram bot token file
+# Telegram bot token file
 config/token
 
 # Python caches
 .mypy_cache
 *__pycache__*
+
+# Others
+tmp_*/
