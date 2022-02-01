@@ -1,32 +1,42 @@
 import logging
 import re
 
-from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
+from telegram.ext import CommandHandler, Dispatcher, Filters, MessageHandler, Updater
 
+import callbacks
 from commands.start import start
-from msg import parse_message
-from msg.random_fact import get_random_important_fact
-
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-
-with open('config/token', 'r') as f:
-    TOKEN = f.readline().strip()
-
-updater = Updater(TOKEN)
-dispatcher = updater.dispatcher
-
-start_handler = CommandHandler('start', start)
-dispatcher.add_handler(start_handler)
-
-echo_handler = MessageHandler(Filters.text & (~Filters.command), parse_message)
-fact_ask_re = re.compile(r'^(расскажи|давай|дай-ка|хочу)\s+факт', re.IGNORECASE)
-random_important_fact_msg_filter = Filters.text & (~Filters.command) & Filters.regex(fact_ask_re)
-
-random_important_fact_handler = MessageHandler(random_important_fact_msg_filter, get_random_important_fact)
 
 
-# order is important
-dispatcher.add_handler(random_important_fact_handler)
-dispatcher.add_handler(echo_handler)
+def add_handlers(dispatcher: Dispatcher):
+    handler = CommandHandler('start', start)
+    dispatcher.add_handler(handler)
 
-updater.start_polling()
+    fact_ask_re = re.compile(r'^(расскажи|давай|дай-ка|хочу)\s+факт', re.IGNORECASE)
+    msg_filter = Filters.text & (~Filters.command) & Filters.regex(fact_ask_re)
+    handler = MessageHandler(msg_filter, callbacks.random_important_fact_callback)
+    dispatcher.add_handler(handler)
+
+    game_request_re = re.compile(r'\bпартеечку\b', re.IGNORECASE)
+    msg_filter = Filters.text & (~Filters.command) & Filters.regex(game_request_re)
+    handler = MessageHandler(msg_filter, callbacks.game_request_callback)
+    dispatcher.add_handler(handler)
+
+    echo_re = re.compile(r'\bэхо\b', re.IGNORECASE)
+    msg_filter = Filters.text & (~Filters.command) & Filters.regex(echo_re)
+    handler = MessageHandler(msg_filter, callbacks.echo_callback)
+    dispatcher.add_handler(handler)
+
+
+def main():
+    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+    with open('config/token', 'r') as f:
+        token = f.readline().strip()
+
+    updater = Updater(token)
+    add_handlers(updater.dispatcher)
+    updater.start_polling()
+
+
+if __name__ == '__main__':
+    main()
