@@ -1,24 +1,30 @@
 import logging
 import re
 
-from telegram.ext import CommandHandler, Dispatcher, Filters, MessageHandler, Updater
+from telegram.ext import (CommandHandler, Dispatcher, Filters, MessageHandler,
+                          Updater)
 
 import callbacks
+from commands.shutdown import shutdown
 from commands.start import start
+from components.telegram.filters.update_filters import is_admin
 
 
 def add_handlers(dispatcher: Dispatcher):
     handler = CommandHandler('start', start)
     dispatcher.add_handler(handler)
 
+    handler = CommandHandler('shutdown', shutdown, filters=Filters.chat_type.private & is_admin)
+    dispatcher.add_handler(handler)
+
     fact_ask_re = re.compile(r'^(расскажи|давай|дай-ка|хочу)\s+факт', re.IGNORECASE)
     msg_filter = Filters.text & (~Filters.command) & Filters.regex(fact_ask_re)
     handler = MessageHandler(msg_filter, callbacks.random_important_fact_callback)
-    dispatcher.add_handler(handler)
 
     game_request_re = re.compile(r'\bпартеечку\b', re.IGNORECASE)
     msg_filter = Filters.text & (~Filters.command) & Filters.regex(game_request_re)
-    handler = MessageHandler(msg_filter, callbacks.game_request_callback)
+    update_filter = Filters.chat_type.private | Filters.chat_type.group
+    handler = MessageHandler(update_filter & msg_filter, callbacks.game_request_callback)
     dispatcher.add_handler(handler)
 
     echo_re = re.compile(r'\bэхо\b', re.IGNORECASE)
