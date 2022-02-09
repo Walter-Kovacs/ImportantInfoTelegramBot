@@ -1,5 +1,6 @@
 import enum
 import random
+import re
 from html.parser import HTMLParser
 from typing import Callable, Dict, List, Optional, Tuple
 
@@ -22,6 +23,8 @@ header_map: Dict[ArticleType, str] = {
     ArticleType.Science: 'Новости с острия науки',
     ArticleType.Economics: 'Политэкономическая ситуация',
 }
+
+empty_data_re = re.compile(r'^\s+$', flags=re.MULTILINE)
 
 
 @define
@@ -83,13 +86,11 @@ class PageParser(HTMLParser):
             if tag == 'span' and (self._get_attr(attrs, 'class') or '') == 'date':
 
                 def dc(data):
-                    data = data.replace('\n', '')
-                    data = data.replace(' ', '')
-                    if data == '':
+                    if empty_data_re.match(data):
                         return False
                     if '::before' in data:
                         return False
-                    self.article_time = data
+                    self.article_time = data.strip()
                     return True
 
                 self._data_catcher = dc
@@ -122,7 +123,7 @@ class PanoramaFact:
 
     def render_hac(self) -> HeaderAndContentFactRepr:
         return HeaderAndContentFactRepr(
-            header=f'({self.article_publication_time}; GMT+3)\n---\n' + header_map[self.article_type],
+            header=f'<b>{header_map[self.article_type]}</b>\n--\n({self.article_publication_time}; GMT+3)',
             content=self.article_link,
         )
 
