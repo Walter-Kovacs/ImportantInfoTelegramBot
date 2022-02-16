@@ -1,0 +1,5 @@
+{ 
+        "storage": {
+            "json_user_db_filepath": "data/user_db.json"
+        }
+}

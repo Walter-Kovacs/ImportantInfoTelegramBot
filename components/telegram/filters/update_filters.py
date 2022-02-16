@@ -1,11 +1,9 @@
 from telegram import Update
 from telegram.ext.filters import UpdateFilter
 
-from components.storage import user_db
+import components.storage as storage
 from components.user.interface import UserLoader
 from components.user.user import User
-
-db: UserLoader = user_db
 
 
 class IsAdminFilter(UpdateFilter):
@@ -14,6 +12,8 @@ class IsAdminFilter(UpdateFilter):
             return False
 
         print(f'IsAdinFilter checks user: {update.effective_user.id}')
+        db: UserLoader =  storage.get_user_db()
+
         user: User = db.load_user_by_telegram_id(update.effective_user.id)
         return user.is_admin
 
