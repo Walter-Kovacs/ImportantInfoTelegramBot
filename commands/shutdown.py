@@ -5,14 +5,14 @@ from typing import Optional
 from telegram import Update
 from telegram.ext import CallbackContext
 
-from components.storage import user_db
+import components.storage as storage
 from components.user.interface import UserLoader
-
-db: UserLoader = user_db
 
 
 def shutdown(update: Update, context: CallbackContext):
     assert update.effective_chat is not None
+
+    db: UserLoader = storage.get_user_db()
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,

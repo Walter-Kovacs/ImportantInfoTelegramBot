@@ -14,6 +14,9 @@ def game_request_callback(update: Update, context: CallbackContext):
 
 
 def random_important_fact_callback(update: Update, context: CallbackContext):
+    print(f'preparing random fact')
+
+    chat_type =update.effective_chat.type
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=get_random_important_fact(),
