@@ -3,19 +3,13 @@ from typing import List
 
 from components.fact_getters.interface import Fact, FactGetter
 from components.fact_getters.panorama import PanoramaFactGetter
-from components.fact_getters.stub import StubFactGetter
 
-fact_battery: List[FactGetter] = [PanoramaFactGetter(), StubFactGetter()]
+fact_battery: List[FactGetter] = [PanoramaFactGetter()]
 
 
 def fact_to_message(f: Fact) -> str:
     rendered_f = f.render_hac()
-    return f"""==========================
-    \n{rendered_f.header}\n
-    '--------------------------
-    \n{rendered_f.content}\n
-    '==========================
-    """
+    return f"{rendered_f.header}\n\n{rendered_f.content}"
 
 
 def get_random_important_fact() -> str:
