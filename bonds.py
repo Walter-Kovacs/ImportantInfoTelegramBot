@@ -2,13 +2,14 @@ from datetime import datetime
 from enum import Enum
 from typing import List
 
+from components.bonds import get_yield_to_maturity
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackContext
 
 
 class InputStep(Enum):
-    NOMINAL = 1,
-    INTEREST_RATE = 2,
+    FACE_VALUE = 1,
+    COUPON_RATE = 2,
     MATURITY_DATE = 3,
     MARKET_PRICE = 4,
     END = 5
@@ -25,12 +26,12 @@ class StepParam(Enum):
 
 
 _STEP_PARAMS = {
-    InputStep.NOMINAL: {
-        StepParam.NEXT_STEP: InputStep.INTEREST_RATE,
+    InputStep.FACE_VALUE: {
+        StepParam.NEXT_STEP: InputStep.COUPON_RATE,
         StepParam.MSG_HEADER: 'Введите номинал облигации',
         StepParam.EDITING_PARAM_TITLE: 'Номинал'
     },
-    InputStep.INTEREST_RATE: {
+    InputStep.COUPON_RATE: {
         StepParam.NEXT_STEP: InputStep.MATURITY_DATE,
         StepParam.MSG_HEADER: 'Введите купон в процентах',
         StepParam.EDITING_PARAM_TITLE: 'Купон (%)'
@@ -107,7 +108,7 @@ def get_keyboard() -> InlineKeyboardMarkup:
 def bonds_request_callback(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f'{_get_msg_header(InputStep.NOMINAL)}\n{_get_editing_param_title(InputStep.NOMINAL)}:',
+        text=f'{_get_msg_header(InputStep.FACE_VALUE)}\n{_get_editing_param_title(InputStep.FACE_VALUE)}:',
         reply_markup=get_keyboard()
     )
 
@@ -126,13 +127,15 @@ def keyboard_callback(update: Update, context: CallbackContext):
         new_value = editing_line[sep_index + 2:] + pressed_button
         msg_lines[-1] = f'{editing_line[:sep_index]}: {new_value}'
     else:
+        # TODO: validate input
         next_step = _get_next_step(step)
         if next_step != InputStep.END:
             msg_lines[0] = _get_msg_header(next_step)
             msg_lines.append(f'{_get_editing_param_title(next_step)}:')
         else:
-            msg_lines[0] = f'Доходность к погашению: {_calc(msg_lines)}'
+            msg_lines[0] = f'Доходность к погашению: {_calc(msg_lines)}%'
             query.edit_message_text(text='\n'.join(msg_lines), reply_markup=None)
+            return
 
     replay_text = '\n'.join(msg_lines)
 
@@ -143,8 +146,8 @@ def keyboard_callback(update: Update, context: CallbackContext):
 
 
 def _calc(msg_lines: List[str]) -> str:
-    nominal = float(msg_lines[1][msg_lines[1].find(':') + 1:])
-    print(nominal)
+    face_value = float(msg_lines[1][msg_lines[1].find(':') + 1:])
+    print(face_value)
 
     interest_rate = float(msg_lines[2][msg_lines[2].find(':') + 1:]) / 100
     print(interest_rate)
@@ -153,18 +156,14 @@ def _calc(msg_lines: List[str]) -> str:
     maturity_date = datetime(y, m, d)
     print(maturity_date)
 
-    market_price = float(msg_lines[4][msg_lines[4].find(':') + 1:])
-    print(market_price)
+    price = float(msg_lines[4][msg_lines[4].find(':') + 1:])
+    print(price)
 
-    today = datetime.now()
-    today = datetime(today.year, today.month, today.day)
-
-    years_to_maturity = (maturity_date - today).days / 365.25
-    print(years_to_maturity)
-
-    profit = (years_to_maturity * nominal * interest_rate + (nominal - market_price))
-    print(profit)
-
-    yield_to_maturity = (profit / years_to_maturity) * 100 / market_price
-
-    return str(round(yield_to_maturity, 2))
+    return str(
+        get_yield_to_maturity(
+            face_value,
+            interest_rate,
+            y, m, d,
+            price
+        )
+    )
