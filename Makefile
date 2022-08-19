@@ -1,7 +1,8 @@
 COMMIT_TIME = $(shell git show -s --format=%ct | xargs -I {} date -d @{} +%Y-%m-%d_%H_%m)
 COMMIT = $(shell git rev-parse --short HEAD)
+BRANCH = $(shell git rev-parse --abbrev-ref HEAD)
 
-VERSION=$(COMMIT_TIME)-${COMMIT}
+VERSION=$(COMMIT_TIME)-${BRANCH}-${COMMIT}
 
 IIBOT_INSTALL_WORKDIR ?= /usr/local/important_info_bot/
 
