@@ -1,4 +1,4 @@
-COMMIT_TIME = $(shell git show -s --format=%ct | xargs -I {} date -d @{} +%Y-%m-%d_%H_%m)
+COMMIT_TIME = $(shell git show -s --format=%ct | xargs -I {} date -d @{} +%Y-%m-%d_%H_%M)
 COMMIT = $(shell git rev-parse --short HEAD)
 BRANCH = $(shell git rev-parse --abbrev-ref HEAD)
 
