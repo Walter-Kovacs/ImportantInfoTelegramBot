@@ -39,4 +39,4 @@ enable_current:
 
 .PHONY: deploy
 deploy: install install_venv enable_current reload
-	echo "bot deployed"
+	@echo "bot deployed"
