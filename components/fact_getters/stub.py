@@ -4,8 +4,8 @@ from components.fact_getters.interface import Fact, HeaderAndContentFactRepr
 class StubFact:
     def render_hac(self) -> HeaderAndContentFactRepr:
         return HeaderAndContentFactRepr(
-            header="Заголовок важного факта",
-            content="Суть важного факта",
+            header="Внимание!",
+            content="Важных фактов не нашлось",
         )
 
 

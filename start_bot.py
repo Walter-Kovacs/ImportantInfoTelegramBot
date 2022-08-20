@@ -1,3 +1,4 @@
+import argparse
 import logging
 import re
 
@@ -12,6 +13,10 @@ from commands.start import start
 from components.config.config import config
 from components.telegram.filters.update_filters import is_admin
 
+args_parser = argparse.ArgumentParser(description='some system args from command line')
+args_parser.add_argument('--config', type=str, default='config/bot_cfg.json', help='path to bot config json')
+
+args = args_parser.parse_args()
 
 def add_handlers(dispatcher: Dispatcher):
     handler = CommandHandler('start', start)
@@ -46,9 +51,10 @@ def add_handlers(dispatcher: Dispatcher):
 def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-    config.read_from_file('config/bot_cfg.json')
+    config.read_from_file(args.config)
+    token_file = config.data.get('token_path', 'config/token')
 
-    with open('config/token', 'r') as f:
+    with open(token_file, 'r') as f:
         token = f.readline().strip()
 
     updater = Updater(token)
