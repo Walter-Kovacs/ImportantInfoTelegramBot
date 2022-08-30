@@ -2,9 +2,8 @@ import argparse
 import logging
 import re
 
-from telegram.ext import (CallbackQueryHandler, CommandHandler, Dispatcher, Filters, MessageHandler,
-                          Updater)
-
+from telegram.ext import (CallbackQueryHandler, CommandHandler, Dispatcher,
+                          Filters, MessageHandler, Updater)
 
 import bonds
 import callbacks
@@ -27,7 +26,8 @@ def add_handlers(dispatcher: Dispatcher):
 
     fact_ask_re = re.compile(r'^(расскажи|давай|дай-ка|хочу)\s+факт', re.IGNORECASE)
     msg_filter = Filters.text & (~Filters.command) & Filters.regex(fact_ask_re)
-    update_filter = Filters.chat_type.private | Filters.chat_type.group
+    update_filter = Filters.chat_type.private | Filters.chat_type.group | Filters.chat_type.supergroup
+
     handler = MessageHandler(msg_filter & update_filter, callbacks.random_important_fact_callback)
     dispatcher.add_handler(handler)
 

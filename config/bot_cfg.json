@@ -1,6 +1,5 @@
 { 
         "storage": {
             "json_user_db_filepath": "data/user_db.json"
-        },
-        "token_path": "/usr/local/important_info_bot/data/token"
+        }
 }
