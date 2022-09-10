@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import Dict
 
 
@@ -9,7 +10,8 @@ class Config:
         with open(config_path, 'r') as config_file:
             cls.data = json.load(config_file)
 
-        print('Config loaded successfull')
+        logger = logging.getLogger('config')
+        logger.info('Config loaded successfully')
 
 
 config = Config()
