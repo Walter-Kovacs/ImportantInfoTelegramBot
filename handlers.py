@@ -35,6 +35,7 @@ def add_handlers(dispatcher: Dispatcher):
         elif functionality_key == 'game_mock':
             _add_game_mock(dispatcher, re_str)
         else:
+            logger.warning(f'Unknown functionality key: {functionality_key}')
             continue
 
         logger.info(f'Turn on functionality: {functionality_key}')
