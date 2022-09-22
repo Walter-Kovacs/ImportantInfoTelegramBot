@@ -6,8 +6,11 @@ env*/
 .idea/
 *.swp
 
+# Config files
+config/*
+
 # Telegram bot token file
-config/token
+config/token*
 
 # Python caches
 .mypy_cache
