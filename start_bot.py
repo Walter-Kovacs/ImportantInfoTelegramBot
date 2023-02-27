@@ -1,15 +1,29 @@
 import argparse
+import importlib
 import logging
+import os
+from pathlib import Path
 
 from telegram.ext import Updater
 from components.config.config import config
-from handlers import add_handlers
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description='some system args from command line')
     parser.add_argument('--config', type=str, default='config/bot_cfg.json', help='path to bot config json')
     return parser.parse_args()
+
+
+def load_functionalities(updater):
+    functionalities_directory = 'functionalities'
+    paths = [
+        path for path in
+        [Path(functionalities_directory) / el for el in os.listdir(functionalities_directory)]
+        if path.is_dir() and path.name != '__pycache__'
+    ]
+    for path in paths:
+        functionality = importlib.import_module(f'{functionalities_directory}.{path.name}')
+        functionality.add_to_bot(updater)
 
 
 def main():
@@ -23,7 +37,7 @@ def main():
         token = f.readline().strip()
 
     updater = Updater(token)
-    add_handlers(updater.dispatcher)
+    load_functionalities(updater)
     updater.start_polling()
 
 
