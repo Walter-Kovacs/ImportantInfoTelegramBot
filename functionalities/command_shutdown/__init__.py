@@ -1,12 +1,23 @@
 import os
 import signal
-from typing import Optional
 
 from telegram import Update
-from telegram.ext import CallbackContext
+from telegram.ext import (
+    CallbackContext,
+    CommandHandler,
+    Dispatcher,
+    Filters,
+)
 
-import components.storage as storage
+from components import storage
+from components.telegram.filters.update_filters import is_admin
 from components.user.interface import UserLoader
+
+
+def add_to_bot(dispatcher: Dispatcher):
+    dispatcher.add_handler(
+        CommandHandler('shutdown', shutdown, filters=Filters.chat_type.private & is_admin)
+    )
 
 
 def shutdown(update: Update, context: CallbackContext):

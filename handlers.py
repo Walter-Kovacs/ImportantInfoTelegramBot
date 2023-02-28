@@ -21,9 +21,7 @@ def add_handlers(dispatcher: Dispatcher):
     for elem in functionality:
         functionality_key, re_str = elem
 
-        if functionality_key == 'command_shutdown':
-            _add_command_shutdown(dispatcher)
-        elif functionality_key == 'fact':
+        if functionality_key == 'fact':
             _add_fact(dispatcher, re_str)
         elif functionality_key == 'bonds':
             _add_bonds(dispatcher, re_str)
@@ -74,11 +72,6 @@ def _parse_functionality_file_line(functionality: list, line: str):
 
     key, priority, re_str = split
     functionality.append((int(priority), key, re_str))
-
-
-def _add_command_shutdown(dispatcher: Dispatcher):
-    handler = CommandHandler('shutdown', shutdown, filters=Filters.chat_type.private & is_admin)
-    dispatcher.add_handler(handler)
 
 
 def _add_fact(dispatcher: Dispatcher, re_str: str):
