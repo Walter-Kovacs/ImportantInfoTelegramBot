@@ -6,7 +6,6 @@ from telegram.ext import CommandHandler, Dispatcher, Filters, MessageHandler, Ca
 import bonds
 import callbacks
 from commands.shutdown import shutdown
-from commands.start import start
 from components.config import config
 from components.telegram.filters.update_filters import is_admin
 
@@ -22,9 +21,7 @@ def add_handlers(dispatcher: Dispatcher):
     for elem in functionality:
         functionality_key, re_str = elem
 
-        if functionality_key == 'command_start':
-            _add_command_start(dispatcher)
-        elif functionality_key == 'command_shutdown':
+        if functionality_key == 'command_shutdown':
             _add_command_shutdown(dispatcher)
         elif functionality_key == 'fact':
             _add_fact(dispatcher, re_str)
@@ -77,11 +74,6 @@ def _parse_functionality_file_line(functionality: list, line: str):
 
     key, priority, re_str = split
     functionality.append((int(priority), key, re_str))
-
-
-def _add_command_start(dispatcher: Dispatcher):
-    handler = CommandHandler('start', start)
-    dispatcher.add_handler(handler)
 
 
 def _add_command_shutdown(dispatcher: Dispatcher):

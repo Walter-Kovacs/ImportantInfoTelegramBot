@@ -1,5 +1,13 @@
 from telegram import Update
-from telegram.ext import CallbackContext
+from telegram.ext import (
+    CallbackContext,
+    CommandHandler,
+    Dispatcher,
+)
+
+
+def add_to_bot(dispatcher: Dispatcher):
+    dispatcher.add_handler(CommandHandler('start', start))
 
 
 def start(update: Update, context: CallbackContext):
