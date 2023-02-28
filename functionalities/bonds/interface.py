@@ -1,18 +1,17 @@
 from enum import Enum, auto
 
-from components import bonds
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import CallbackContext
+from . import calculation
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-class _BondParameter(Enum):
+class BondParameter(Enum):
     FACE_VALUE = auto()
     COUPON_RATE = auto()
     MATURITY_DATE = auto()
     PRICE = auto()
 
 
-class _UnknownBondParameter(Exception):
+class UnknownBondParameter(Exception):
     pass
 
 
@@ -46,15 +45,15 @@ def _str_is_date(s: str) -> bool:  # dd.mm.yyyy
     return True
 
 
-class _Bond:
+class Bond:
     def __init__(self):
         self._parameters = {
-            _BondParameter.FACE_VALUE: '',
-            _BondParameter.COUPON_RATE: '',
-            _BondParameter.MATURITY_DATE: '',
-            _BondParameter.PRICE: ''
+            BondParameter.FACE_VALUE: '',
+            BondParameter.COUPON_RATE: '',
+            BondParameter.MATURITY_DATE: '',
+            BondParameter.PRICE: ''
         }
-        self._editing_parameter: _BondParameter = _BondParameter.FACE_VALUE
+        self._editing_parameter: BondParameter = BondParameter.FACE_VALUE
 
     def append_symbol(self, char: str):
         self._parameters[self._editing_parameter] += char
@@ -72,55 +71,55 @@ class _Bond:
         return self._parameters
 
     @property
-    def editing_parameter(self) -> _BondParameter:
+    def editing_parameter(self) -> BondParameter:
         return self._editing_parameter
 
     @editing_parameter.setter
-    def editing_parameter(self, param: _BondParameter):
+    def editing_parameter(self, param: BondParameter):
         self._editing_parameter = param
 
-    def validate_parameter(self, param: _BondParameter) -> bool:
-        if param in [_BondParameter.FACE_VALUE, _BondParameter.COUPON_RATE, _BondParameter.PRICE]:
+    def validate_parameter(self, param: BondParameter) -> bool:
+        if param in [BondParameter.FACE_VALUE, BondParameter.COUPON_RATE, BondParameter.PRICE]:
             return _str_is_number(self._parameters[param])
-        elif param == _BondParameter.MATURITY_DATE:
+        elif param == BondParameter.MATURITY_DATE:
             return _str_is_date(self._parameters[param])
         else:
-            raise _UnknownBondParameter
+            raise UnknownBondParameter
 
     def calc_yield_to_maturity(self) -> float:
-        m_day, m_month, m_year = map(int, self._parameters[_BondParameter.MATURITY_DATE].split('.'))
+        m_day, m_month, m_year = map(int, self._parameters[BondParameter.MATURITY_DATE].split('.'))
 
-        return bonds.yield_to_maturity(
-            float(self._parameters[_BondParameter.FACE_VALUE]),
-            float(self._parameters[_BondParameter.COUPON_RATE]),
+        return calculation.yield_to_maturity(
+            float(self._parameters[BondParameter.FACE_VALUE]),
+            float(self._parameters[BondParameter.COUPON_RATE]),
             m_year, m_month, m_day,
-            float(self._parameters[_BondParameter.PRICE])
+            float(self._parameters[BondParameter.PRICE])
         )
 
 
-class _BondUserInterface:
+class BondUserInterface:
     CALLBACK_PATTERN_EDIT_PARAM = 'bonds_edit_param'
     CALLBACK_PATTERN_SELECT_PARAM = 'bonds_select_param'
     _edit_param_keyboard: InlineKeyboardMarkup = None
     _select_param_keyboard: InlineKeyboardMarkup = None
     _editing_msg_header = {
-        _BondParameter.FACE_VALUE: 'Введите номинал облигации',
-        _BondParameter.COUPON_RATE: 'Введите купон в процентах',
-        _BondParameter.MATURITY_DATE: 'Введите дату погашения в формате дд.мм.гггг',
-        _BondParameter.PRICE: 'Введите рыночную цену'
+        BondParameter.FACE_VALUE: 'Введите номинал облигации',
+        BondParameter.COUPON_RATE: 'Введите купон в процентах',
+        BondParameter.MATURITY_DATE: 'Введите дату погашения в формате дд.мм.гггг',
+        BondParameter.PRICE: 'Введите рыночную цену'
     }
     _select_param_header = 'Выберите параметр облигации для редактирования'
     _param_title = {
-        _BondParameter.FACE_VALUE: 'Номинал',
-        _BondParameter.COUPON_RATE: 'Купон, %',
-        _BondParameter.MATURITY_DATE: 'Дата погашения',
-        _BondParameter.PRICE: 'Цена'
+        BondParameter.FACE_VALUE: 'Номинал',
+        BondParameter.COUPON_RATE: 'Купон, %',
+        BondParameter.MATURITY_DATE: 'Дата погашения',
+        BondParameter.PRICE: 'Цена'
     }
 
     def __init__(self, chat_id: int, msg_id: int):
         self._chat_id = chat_id
         self._msg_id = msg_id
-        self._bond = _Bond()
+        self._bond = Bond()
         self._prev_pressed_button = ''
         self._init_keyboards()
 
@@ -160,21 +159,21 @@ class _BondUserInterface:
                 [
                     InlineKeyboardButton(
                         'Номинал',
-                        callback_data=f'{cls.CALLBACK_PATTERN_SELECT_PARAM}{_BondParameter.FACE_VALUE.name}'
+                        callback_data=f'{cls.CALLBACK_PATTERN_SELECT_PARAM}{BondParameter.FACE_VALUE.name}'
                     ),
                     InlineKeyboardButton(
                         'Купон',
-                        callback_data=f'{cls.CALLBACK_PATTERN_SELECT_PARAM}{_BondParameter.COUPON_RATE.name}'
+                        callback_data=f'{cls.CALLBACK_PATTERN_SELECT_PARAM}{BondParameter.COUPON_RATE.name}'
                     )
                 ],
                 [
                     InlineKeyboardButton(
                         'Дата погашения',
-                        callback_data=f'{cls.CALLBACK_PATTERN_SELECT_PARAM}{_BondParameter.MATURITY_DATE.name}'
+                        callback_data=f'{cls.CALLBACK_PATTERN_SELECT_PARAM}{BondParameter.MATURITY_DATE.name}'
                     ),
                     InlineKeyboardButton(
                         'Цена',
-                        callback_data=f'{cls.CALLBACK_PATTERN_SELECT_PARAM}{_BondParameter.PRICE.name}'
+                        callback_data=f'{cls.CALLBACK_PATTERN_SELECT_PARAM}{BondParameter.PRICE.name}'
                     )
                 ],
                 [
@@ -199,25 +198,25 @@ class _BondUserInterface:
     @classmethod
     def get_start_msg_text(cls):
         lines = [cls._select_param_header]
-        for param in _BondParameter:
+        for param in BondParameter:
             lines.append(f'{cls._param_title[param]}:')
         return '\n'.join(lines)
 
     def get_select_param_msg_text(self) -> str:
         lines = [self._select_param_header]
-        for param in _BondParameter:
+        for param in BondParameter:
             lines.append(f'{self._param_title[param]}: {self._bond.parameters[param]}')
         return '\n'.join(lines)
 
     def get_editing_params_msg_text(self) -> str:
         lines = [self._editing_msg_header[self._bond.editing_parameter]]
-        for param in _BondParameter:
+        for param in BondParameter:
             lines.append(f'{self._param_title[param]}: {self._bond.parameters[param]}')
         return '\n'.join(lines)
 
     def get_final_msg_text(self, yield_to_maturity: float) -> str:
         lines = [f'Доходность к погашению: {str(yield_to_maturity)}%']
-        for param in _BondParameter:
+        for param in BondParameter:
             lines.append(f'{self._param_title[param]}: {self._bond.parameters[param]}')
         return '\n'.join(lines)
 
@@ -234,85 +233,10 @@ class _BondUserInterface:
         self._prev_pressed_button = button
 
     def validate_all(self) -> bool:
-        for param in _BondParameter:
+        for param in BondParameter:
             if not self._bond.validate_parameter(param):
                 return False
         return True
 
 
-_bonds_UIs = dict()
-
-
-def start_callback(update: Update, context: CallbackContext):
-    message = context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=_BondUserInterface.get_start_msg_text(),
-        reply_markup=_BondUserInterface.get_select_param_keyboard()
-    )
-
-    chat_id = update.effective_chat.id
-    msg_id = message.message_id
-    _bonds_UIs[f'{chat_id}|{msg_id}'] = _BondUserInterface(chat_id, msg_id)
-
-
-def keyboard_callback(update: Update, context: CallbackContext):
-    query = update.callback_query
-    query.answer()
-
-    message = query.message
-    try:
-        ui_id = f'{update.effective_chat.id}|{message.message_id}'
-        ui: _BondUserInterface = _bonds_UIs[ui_id]
-    except KeyError:
-        query.edit_message_text(text='Начните с начала')
-        return
-
-    query_data = query.data
-    if query_data.startswith(_BondUserInterface.CALLBACK_PATTERN_SELECT_PARAM):
-        pressed_button = query_data.lstrip(_BondUserInterface.CALLBACK_PATTERN_SELECT_PARAM)
-        if pressed_button == 'Calc':
-            if ui.validate_all():
-                query.edit_message_text(
-                    text=ui.get_final_msg_text(ui.bond.calc_yield_to_maturity())
-                )
-                _bonds_UIs.pop(ui_id)
-            else:
-                if ui.prev_pressed_button != 'Calc':
-                    query.edit_message_text(
-                        text=f'Не все параметры заполнены корректно\n{ui.get_select_param_msg_text()}',
-                        reply_markup=ui.get_select_param_keyboard()
-                    )
-        else:  # parameter
-            ui.bond.editing_parameter = _BondParameter[pressed_button]
-            query.edit_message_text(
-                text=ui.get_editing_params_msg_text(),
-                reply_markup=ui.get_edit_param_keyboard()
-            )
-    else:
-        pressed_button = query_data.lstrip(_BondUserInterface.CALLBACK_PATTERN_EDIT_PARAM)
-        if pressed_button == 'Ok':
-            if ui.prev_pressed_button != 'Ok':
-                if ui.bond.validate_parameter(ui.bond.editing_parameter):
-                    query.edit_message_text(
-                        text=ui.get_select_param_msg_text(),
-                        reply_markup=ui.get_select_param_keyboard()
-                    )
-                else:
-                    query.edit_message_text(
-                        text=f'Неверное значение параметра\n{ui.get_editing_params_msg_text()}',
-                        reply_markup=ui.get_edit_param_keyboard()
-                    )
-        elif pressed_button == 'Del':
-            if ui.bond.del_symbol():
-                query.edit_message_text(
-                    text=ui.get_editing_params_msg_text(),
-                    reply_markup=ui.get_edit_param_keyboard()
-                )
-        else:  # . or digit
-            ui.bond.append_symbol(pressed_button)
-            query.edit_message_text(
-                text=ui.get_editing_params_msg_text(),
-                reply_markup=ui.get_edit_param_keyboard()
-            )
-
-    ui.prev_pressed_button = pressed_button
+bonds_UIs = dict()

@@ -22,8 +22,6 @@ def add_handlers(dispatcher: Dispatcher):
 
         if functionality_key == 'fact':
             _add_fact(dispatcher, re_str)
-        elif functionality_key == 'bonds':
-            _add_bonds(dispatcher, re_str)
         else:
             logger.warning(f'Unknown functionality key: {functionality_key}')
             continue
@@ -81,15 +79,3 @@ def _add_fact(dispatcher: Dispatcher, re_str: str):
     update_filter = Filters.chat_type.private | Filters.chat_type.group | Filters.chat_type.supergroup
     handler = MessageHandler(msg_filter & update_filter, callbacks.random_important_fact_callback)
     dispatcher.add_handler(handler)
-
-
-def _add_bonds(dispatcher: Dispatcher, re_str: str):
-    if re_str != '':
-        kb_re = re.compile(re_str, re.IGNORECASE)
-    else:
-        kb_re = re.compile(r'\bbonds\b', re.IGNORECASE)
-
-    msg_filter = Filters.text & (~Filters.command) & Filters.regex(kb_re)
-    handler = MessageHandler(msg_filter, bonds.start_callback)
-    dispatcher.add_handler(handler)
-    dispatcher.add_handler(CallbackQueryHandler(bonds.keyboard_callback, pattern=r'^bonds'))
