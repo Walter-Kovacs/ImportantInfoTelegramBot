@@ -19,6 +19,13 @@ def add_to_bot(dispatcher: Dispatcher):
     dispatcher.add_handler(handler)
 
 
+def get_help_info() -> tuple:
+    return (
+        'Факты.',
+        'Присылает случайный (очень важный) факт на сообщения "расскажи/давай/дай-ка/хочу факт".'
+    )
+
+
 def random_important_fact_callback(update: Update, context: CallbackContext):
     print(f'preparing random fact')
 

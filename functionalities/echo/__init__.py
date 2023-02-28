@@ -17,5 +17,12 @@ def add_to_bot(dispatcher: Dispatcher):
     )
 
 
+def get_help_info() -> tuple:
+    return (
+        'Эхо.',
+        'Ответ на сообщения со словом эхо.'
+    )
+
+
 def echo(update: Update, context: CallbackContext):
     context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)

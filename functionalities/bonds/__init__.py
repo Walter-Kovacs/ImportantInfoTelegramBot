@@ -16,3 +16,10 @@ def add_to_bot(dispatcher: Dispatcher):
     handler = MessageHandler(msg_filter, start_callback)
     dispatcher.add_handler(handler)
     dispatcher.add_handler(CallbackQueryHandler(keyboard_callback, pattern=r'^bonds'))
+
+
+def get_help_info() -> tuple:
+    return (
+        'Расчёт доходности облигации.',
+        'Запускается, если в сообщении есть слово bonds.'
+    )

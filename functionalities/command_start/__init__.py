@@ -10,6 +10,10 @@ def add_to_bot(dispatcher: Dispatcher):
     dispatcher.add_handler(CommandHandler('start', start))
 
 
+def get_help_info() -> tuple:
+    return '/start', 'Приветствие от бота.'
+
+
 def start(update: Update, context: CallbackContext):
     if update.effective_chat is None:
         return
