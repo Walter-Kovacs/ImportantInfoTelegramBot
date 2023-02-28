@@ -5,7 +5,6 @@ from telegram.ext import CommandHandler, Dispatcher, Filters, MessageHandler, Ca
 
 import bonds
 import callbacks
-from commands.shutdown import shutdown
 from components.config import config
 from components.telegram.filters.update_filters import is_admin
 
@@ -25,8 +24,6 @@ def add_handlers(dispatcher: Dispatcher):
             _add_fact(dispatcher, re_str)
         elif functionality_key == 'bonds':
             _add_bonds(dispatcher, re_str)
-        elif functionality_key == 'game_mock':
-            _add_game_mock(dispatcher, re_str)
         else:
             logger.warning(f'Unknown functionality key: {functionality_key}')
             continue
@@ -96,14 +93,3 @@ def _add_bonds(dispatcher: Dispatcher, re_str: str):
     handler = MessageHandler(msg_filter, bonds.start_callback)
     dispatcher.add_handler(handler)
     dispatcher.add_handler(CallbackQueryHandler(bonds.keyboard_callback, pattern=r'^bonds'))
-
-
-def _add_game_mock(dispatcher: Dispatcher, re_str: str):
-    if re_str != '':
-        game_request_re = re.compile(re_str, re.IGNORECASE)
-    else:
-        game_request_re = re.compile(r'\bпартеечку\b', re.IGNORECASE)
-
-    msg_filter = Filters.text & (~Filters.command) & Filters.regex(game_request_re)
-    handler = MessageHandler(msg_filter, callbacks.game_request_callback)
-    dispatcher.add_handler(handler)
