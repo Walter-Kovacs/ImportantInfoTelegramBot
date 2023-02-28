@@ -26,8 +26,6 @@ def add_handlers(dispatcher: Dispatcher):
             _add_command_start(dispatcher)
         elif functionality_key == 'command_shutdown':
             _add_command_shutdown(dispatcher)
-        elif functionality_key == 'echo':
-            _add_echo(dispatcher, re_str)
         elif functionality_key == 'fact':
             _add_fact(dispatcher, re_str)
         elif functionality_key == 'bonds':
@@ -88,17 +86,6 @@ def _add_command_start(dispatcher: Dispatcher):
 
 def _add_command_shutdown(dispatcher: Dispatcher):
     handler = CommandHandler('shutdown', shutdown, filters=Filters.chat_type.private & is_admin)
-    dispatcher.add_handler(handler)
-
-
-def _add_echo(dispatcher: Dispatcher, re_str: str):
-    if re_str != '':
-        echo_re = re.compile(re_str, re.IGNORECASE)
-    else:
-        echo_re = re.compile(r'\bэхо\b', re.IGNORECASE)
-
-    msg_filter = Filters.text & (~Filters.command) & Filters.regex(echo_re)
-    handler = MessageHandler(msg_filter, callbacks.echo_callback)
     dispatcher.add_handler(handler)
 
 

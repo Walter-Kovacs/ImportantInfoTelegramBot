@@ -2,15 +2,17 @@ import re
 
 from telegram import Update
 from telegram.ext import (
+    CallbackContext,
+    Dispatcher,
     Filters,
-    MessageHandler, CallbackContext,
+    MessageHandler,
 )
 
 
-def add_to_bot(updater):
+def add_to_bot(dispatcher: Dispatcher):
     pattern = re.compile(r'\bэхо\b', re.IGNORECASE)
     msg_filter = Filters.text & (~Filters.command) & Filters.regex(pattern)
-    updater.dispatcher.add_handler(
+    dispatcher.add_handler(
         MessageHandler(msg_filter, echo)
     )
 

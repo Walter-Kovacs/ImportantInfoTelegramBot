@@ -37,7 +37,7 @@ def main():
         token = f.readline().strip()
 
     updater = Updater(token)
-    load_functionalities(updater)
+    load_functionalities(updater.dispatcher)
     updater.start_polling()
 
 
