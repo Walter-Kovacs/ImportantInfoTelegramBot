@@ -7,7 +7,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 import requests
 from attrs import Factory, define, field
 
-from components.fact_getters.interface import Fact, HeaderAndContentFactRepr
+from functionalities.facts.fact_getters.interface import Fact, HeaderAndContentFactRepr
 
 
 class ArticleType(enum.Enum):

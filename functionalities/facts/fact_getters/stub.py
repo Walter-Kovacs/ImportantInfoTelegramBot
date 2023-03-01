@@ -1,4 +1,4 @@
-from components.fact_getters.interface import Fact, HeaderAndContentFactRepr
+from functionalities.facts.fact_getters.interface import Fact, HeaderAndContentFactRepr
 
 
 class StubFact:
