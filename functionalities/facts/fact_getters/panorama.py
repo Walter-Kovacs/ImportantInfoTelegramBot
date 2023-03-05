@@ -62,7 +62,7 @@ class PageParser(HTMLParser):
 
         if self._current_action == 'search_for_articles_div':
             cl = self._get_attr(attrs, 'class')
-            if cl is not None and cl == 'news big-previews two-in-row':
+            if cl is not None and cl == 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-x-2.5 gap-y-4 lg:gap-y-2.5':
                 self._current_action = 'pass_to_certain_article'
             return
 
@@ -72,13 +72,15 @@ class PageParser(HTMLParser):
                 self._article_count += 1
                 if self._article_count == self.article_number:
                     self.article_href = self._get_attr(attrs, 'href')
-                    self._current_action = 'search_for_date'
+                    # self._current_action = 'search_for_date'
+                    self._current_action = 'go_to_finish'
             if self._articles_div_stack <= 0:
                 raise Exception(
-                    'PageParser: pass_to_certain_article failed: articles_div_passed, article_count: {self._article_count}, article_number {self.article_number}'
+                    f'PageParser: pass_to_certain_article failed: articles_div_passed, article_count: {self._article_count}, article_number {self.article_number}'
                 )
             return
 
+        # Not used in this version
         if self._current_action == 'search_for_date':
             if self._articles_div_stack <= 0:
                 raise Exception('PageParser: search_for_date failed: articles_div_passed')
@@ -118,12 +120,12 @@ class PageParser(HTMLParser):
 @define
 class PanoramaFact:
     article_type: ArticleType
-    article_publication_time: str
+    article_publication_time: str  # Not used in this version
     article_link: str
 
     def render_hac(self) -> HeaderAndContentFactRepr:
         return HeaderAndContentFactRepr(
-            header=f'<b>{header_map[self.article_type]}</b>\n--\n({self.article_publication_time}; GMT+3)',
+            header=f'<b>{header_map[self.article_type]}</b>',
             content=self.article_link,
         )
 
@@ -141,10 +143,10 @@ class PanoramaFactGetter:
         pp = PageParser(article_number=number)
         pp.feed(resp.text)
         pp.close()
-        if pp.article_href is None or pp.article_time is None:
+        if pp.article_href is None:
             raise Exception(
                 'some information not found in panorama response'
-                + f'found href: {pp.article_href}, article_time: {pp.article_time}'
+                + f'found href: {pp.article_href}'
             )
         return PanoramaFact(
             article_type=at,
