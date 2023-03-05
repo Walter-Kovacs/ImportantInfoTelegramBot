@@ -17,4 +17,4 @@ def get_help_info() -> tuple:
 def start(update: Update, context: CallbackContext):
     if update.effective_chat is None:
         return
-    context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, pleas talk to me!")
+    context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, pleas talk to me! Or type /help")
