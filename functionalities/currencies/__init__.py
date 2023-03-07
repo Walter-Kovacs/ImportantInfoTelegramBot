@@ -4,13 +4,16 @@ from telegram.ext import (
 )
 
 from functionalities.currencies.callbacks import (
-    show_main_currencies,
+    currency_command_callback,
 )
 
 
 def add_to_bot(dispatcher: Dispatcher):
-    dispatcher.add_handler(CommandHandler('currency', show_main_currencies))
+    dispatcher.add_handler(CommandHandler('currency', currency_command_callback))
 
 
 def get_help_info() -> tuple:
-    return '/currency', 'Курс основных валют за текущую дату.'
+    return (
+        'Курс валюты.',
+        'Команда: "/currency [code] [date]" отображает курс валюты на указанную дату.'
+    )
