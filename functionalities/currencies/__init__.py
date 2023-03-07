@@ -3,7 +3,7 @@ from telegram.ext import (
     Dispatcher,
 )
 
-from functionalities.currencies.callback import (
+from functionalities.currencies.callbacks import (
     show_main_currencies,
 )
 
