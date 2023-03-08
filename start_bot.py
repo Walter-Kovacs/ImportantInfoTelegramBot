@@ -9,6 +9,7 @@ from telegram import Update
 from telegram.ext import (
     CallbackContext,
     CommandHandler,
+    Dispatcher,
     Updater,
 )
 
@@ -23,7 +24,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_functionalities(updater):
+def load_functionalities(dispatcher: Dispatcher):
     functionalities_directory = 'functionalities'
     paths = [
         path for path in
@@ -34,7 +35,7 @@ def load_functionalities(updater):
     f_help = []
     for path in paths:
         functionality = importlib.import_module(f'{functionalities_directory}.{path.name}')
-        functionality.add_to_bot(updater)
+        functionality.add_to_bot(dispatcher)
 
         try:
             help_functionality_name, help_functionality_description = functionality.get_help_info()
