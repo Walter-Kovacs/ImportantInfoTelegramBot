@@ -17,7 +17,7 @@ def get_currencies_rates(date: datetime.date, *codes: str) -> Dict[str, Tuple[st
         *codes: currencies codes
 
     Returns:
-        Dictionary {'currency code': ('amount of currency for rate', 'rate')}
+        Dictionary {'currency code in upper case': ('amount of currency for rate', 'rate')}
     """
     res = dict()
     service_response = service.send_request(date)
