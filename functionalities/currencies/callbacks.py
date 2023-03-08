@@ -3,8 +3,7 @@ import datetime
 from telegram import Update
 from telegram.ext import CallbackContext
 
-from .services.cbr import get_currencies_rates
-from .codes import codes_by_phrase
+from .services import cbr
 
 
 def currency_command_callback(update: Update, context: CallbackContext):
@@ -26,7 +25,7 @@ def currency_command_callback(update: Update, context: CallbackContext):
             )
             return
 
-    rates = get_currencies_rates(date, *codes)
+    rates = cbr.get_currencies_rates(date, *codes)
     if len(rates) == 0:
         text = 'Не могу узнать курс валюты :('
     else:
@@ -47,9 +46,9 @@ def currency_command_callback(update: Update, context: CallbackContext):
 
 def start_with_keyword_callback(update: Update, context: CallbackContext):
     currency = update.message.text.split(maxsplit=1)[1]  # message text: "курс <валюты>"
-    code = codes_by_phrase.get(currency.lower())
+    code = cbr.currencies.codes_by_phrase.get(currency.lower())
     if code is not None:
-        rate = get_currencies_rates(datetime.date.today(), code)
+        rate = cbr.get_currencies_rates(datetime.date.today(), code)
         if len(rate) > 0:
             rate = rate[code]
             text = f'{rate[0]} {code} = {rate[1]} RUB'

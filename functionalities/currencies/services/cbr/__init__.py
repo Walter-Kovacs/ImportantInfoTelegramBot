@@ -4,6 +4,7 @@ from typing import Dict, Tuple
 from xml.etree import ElementTree
 
 from . import service
+from . import currencies
 
 
 logger = logging.getLogger(__name__)
