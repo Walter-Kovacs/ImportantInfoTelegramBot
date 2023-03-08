@@ -42,3 +42,11 @@ def currency_command_callback(update: Update, context: CallbackContext):
         chat_id=update.effective_chat.id,
         text=text,
     )
+
+
+def start_with_keyword_callback(update: Update, context: CallbackContext):
+    pass
+
+
+def bitcoin_rate_callback(update: Update, context: CallbackContext):
+    pass
