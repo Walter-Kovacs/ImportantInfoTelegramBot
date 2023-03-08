@@ -3,6 +3,7 @@ import datetime
 from telegram import Update
 from telegram.ext import CallbackContext
 
+from .services import binance
 from .services import cbr
 
 
@@ -64,4 +65,17 @@ def start_with_keyword_callback(update: Update, context: CallbackContext):
 
 
 def bitcoin_rate_callback(update: Update, context: CallbackContext):
-    pass
+    try:
+        btc_busd: float = binance.get_btc_busd_rate()
+        usd_rub_info: tuple = cbr.get_currencies_rates(datetime.date.today(), 'USD')['USD']
+        usd_rub_amount, usd_rub_rate = int(usd_rub_info[0]), float(usd_rub_info[1])
+        btc_rub = btc_busd * (usd_rub_rate / usd_rub_amount)
+        text = f'1 BTC = {format(btc_busd, "_.2f").replace("_", " ")} BUSD\n' \
+               f'1 BTC = {format(btc_rub, "_.2f").replace("_", " ")} RUB'
+    except binance.ServiceError:
+        text = 'Не могу узнать курс :('
+
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=text,
+    )
