@@ -2,11 +2,15 @@ import logging
 import random
 from typing import List
 
+from .fact_getters import currencies
 from .fact_getters.interface import Fact, FactGetter
 from .fact_getters.panorama import PanoramaFactGetter
 from .fact_getters.stub import StubFact
 
-fact_battery: List[FactGetter] = [PanoramaFactGetter()]
+fact_battery: List[FactGetter] = [
+    PanoramaFactGetter(),
+    currencies.RateFactGetter(),
+]
 
 log = logging.getLogger('random_fact_skill')
 
