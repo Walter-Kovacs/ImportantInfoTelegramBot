@@ -12,6 +12,6 @@ def get_btc_busd_rate() -> float:
     try:
         response = client.avg_price(symbol='BTCBUSD')
         return float(response['price'])
-    except Union[ClientError, KeyError, ValueError] as e:
+    except (ClientError, KeyError, ValueError) as e:
         _logger.warning(e)
         raise ServiceError(f'Perhaps the binance.com service has been changed: {e}')
