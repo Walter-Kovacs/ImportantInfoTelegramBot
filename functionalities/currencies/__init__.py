@@ -1,16 +1,33 @@
+import re
+
 from telegram.ext import (
     CommandHandler,
     Dispatcher,
+    Filters,
+    MessageHandler,
 )
 
-from functionalities.currencies.callback import (
-    show_main_currencies,
-)
+from . import callbacks
 
 
 def add_to_bot(dispatcher: Dispatcher):
-    dispatcher.add_handler(CommandHandler('currency', show_main_currencies))
+    # Command /currency
+    dispatcher.add_handler(CommandHandler('currency', callbacks.currency_command_callback))
+
+    # Message "курс биткоина" - BTC rate for today
+    pattern = re.compile(r'\bкурс\b +\bбитко[и,й]на\b', re.IGNORECASE)
+    msg_filter = Filters.text & (~Filters.command) & Filters.regex(pattern)
+    dispatcher.add_handler(MessageHandler(msg_filter, callbacks.bitcoin_rate_callback))
+
+    # Message "курс <currency>" - currency rate for today
+    pattern = re.compile(r'^курс +[а-я]+', re.IGNORECASE)
+    msg_filter = Filters.text & (~Filters.command) & Filters.regex(pattern)
+    dispatcher.add_handler(MessageHandler(msg_filter, callbacks.start_with_keyword_callback))
 
 
 def get_help_info() -> tuple:
-    return '/currency', 'Курс основных валют за текущую дату.'
+    return (
+        'Курс валюты.',
+        'Команда: "/currency [code] [date]" отображает курс валюты на указанную дату.\n'
+        'На сообщения вида "курс <название валюты>" присылает курс указанной валюты на сегодня.'
+    )
