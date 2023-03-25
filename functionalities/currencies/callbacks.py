@@ -45,6 +45,16 @@ def currency_command_callback(update: Update, context: CallbackContext):
     )
 
 
+def currency_available_command_callback(update: Update, context: CallbackContext):
+    currencies = sorted(cbr.currencies.codes_by_imenitelny_padezh.keys())
+    available_currencies = [f'{c} - {cbr.currencies.codes_by_imenitelny_padezh[c]}' for c in currencies]
+
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='Доступные валюты:\n' + '\n'.join(available_currencies),
+    )
+
+
 def start_with_keyword_callback(update: Update, context: CallbackContext):
     currency = update.message.text.split(maxsplit=1)[1]  # message text: "курс <валюты>"
     code = cbr.currencies.codes_by_phrase.get(currency.lower())
