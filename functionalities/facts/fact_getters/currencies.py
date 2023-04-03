@@ -23,7 +23,7 @@ class RateFact:
 class RateFactGetter:
     @classmethod
     def get_important_fact(cls) -> RateFact:
-        currencies = cbr.currencies.codes_by_phrase
+        currencies = cbr.currencies.codes_by_roditelny_padezh
         currency = random.choice(list(currencies.keys()))
         currency_code = currencies[currency]
 
