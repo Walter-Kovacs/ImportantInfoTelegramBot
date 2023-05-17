@@ -6,12 +6,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 from telegram import Update
-from telegram.ext import (
-    CallbackContext,
-    CommandHandler,
-    Dispatcher,
-    Updater,
-)
+from telegram.ext import CallbackContext, CommandHandler, Dispatcher, Updater
 
 from components.config.config import config
 
@@ -61,10 +56,19 @@ def functionalities_help_callback(update: Update, context: CallbackContext):
 
 
 def main():
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+    loggingFormat = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    logging.basicConfig(format=loggingFormat, level=logging.INFO)
 
     args = parse_args()
     config.read_from_file(args.config)
+    logging_level_from_conf = config.data.get('logging', {}).get('level', '')
+    if logging_level_from_conf != "":
+        level = logging.getLevelName(logging_level_from_conf)
+        assert isinstance(level, int), f"unsupported level name red from bot conf: '{logging_level_from_conf}'"
+        logging.basicConfig(format=loggingFormat, level=level, force=True)
+        logging.info(f"Logging level set to config's value to {logging_level_from_conf} ({level})")
+    else:
+        logging.info('Logging level not found in bot config (logging.level json 2nd level key), continue with level INFO')
 
     token_file = config.data.get('token_path', 'config/token')
     with open(token_file, 'r') as f:
