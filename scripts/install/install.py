@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 import shutil
 import venv
 from pathlib import Path
@@ -16,7 +17,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('command', type=str, help='install,activate')
 parser.add_argument('--workdir', type=str, required=True)
 parser.add_argument('--source_code_dir', type=str, required=False)
-parser.add_argument('--version', type=str, required=True)
+parser.add_argument('--version', type=str, required=False)
 
 
 def prepare_workdir(dirpath: str) -> Path:
@@ -76,17 +77,20 @@ def switch_symlink_and_exit(version_dir: Path, symlink: Path):
     exit(2)
 
 
-def extract_params_from_args(args) -> Dict[str, Path]:
+def extract_params_from_args(args) -> Dict[str, Optional[Path]]:
     source_code_dir: Path = Path(args.source_code_dir or '')
     install_dir = prepare_workdir(args.workdir)
     symlink = install_dir.joinpath("bot")
 
-    version_dir = install_dir.joinpath(args.version)
+    version_dir: Optional[Path] = None
+    if args.version is not None:
+        version_dir = install_dir.joinpath(args.version)
 
     return {
-        'source_code_dir': source_code_dir,
-        'version_dir': version_dir,
-        'symlink': symlink,
+        'source_code_dir': source_code_dir, # directory with source code to install
+        'install_dir': install_dir,         # directory with all versions
+        'version_dir': version_dir,         # directory for sertain version
+        'symlink': symlink,                 # path to symlink that should point to some version; used in systemctl to operate with service
     }
 
 
@@ -114,8 +118,16 @@ def command_enable(args) -> None:
     params = extract_params_from_args(args)
     symlink = params.get('symlink')
     version_dir = params.get('version_dir')
-    assert symlink is not None and version_dir is not None, 'arguments parsed incorrectly; one of (or both) symlink {symlink} version_dir {version_dir} is None'
+    assert symlink is not None and version_dir is not None, f'arguments parsed incorrectly; one of (or both) symlink {symlink} version_dir {version_dir} is None'
     switch_symlink(version_dir, symlink)
+
+def command_show_installed_versions(args) -> None:
+    params = extract_params_from_args(args)
+    install_dir = params.get('install_dir')
+    assert install_dir is not None, f'invalid arguments: {args}; failed to extract install_dir from them'
+    install_dir_content = os.listdir(install_dir)
+    print(install_dir_content)
+
 
 def main():
     args = parser.parse_args()
@@ -124,6 +136,8 @@ def main():
         command_install(args)
     elif args.command == 'enable':
         command_enable(args)
+    elif args.command == 'show_installed':
+        command_show_installed_versions(args)
     else:
         log.error(f'unknown command {args.command}')
 
