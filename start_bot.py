@@ -6,7 +6,12 @@ from pathlib import Path
 from typing import List, Tuple
 
 from telegram import Update
-from telegram.ext import CallbackContext, CommandHandler, Dispatcher, Updater
+from telegram.ext import (
+    Application,
+    ApplicationBuilder,
+    CallbackContext,
+    CommandHandler,
+)
 
 from components.config.config import config
 
@@ -19,7 +24,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_functionalities(dispatcher: Dispatcher):
+def load_functionalities(app: Application):
     functionalities_directory = 'functionalities'
     paths = [
         path for path in
@@ -29,8 +34,12 @@ def load_functionalities(dispatcher: Dispatcher):
 
     f_help = []
     for path in paths:
-        functionality = importlib.import_module(f'{functionalities_directory}.{path.name}')
-        functionality.add_to_bot(dispatcher)
+        try:
+            functionality = importlib.import_module(f'{functionalities_directory}.{path.name}')
+            functionality.add_to_bot(app)
+        except Exception as ex:
+            logging.warning(f'Cannot load functionality: {path}\n{repr(ex)}')
+            continue
 
         try:
             help_functionality_name, help_functionality_description = functionality.get_help_info()
@@ -51,8 +60,8 @@ def construct_functionalities_help_string(f_help: List[Tuple[str, str]]):
     functionalities_help = '\n'.join(res)
 
 
-def functionalities_help_callback(update: Update, context: CallbackContext):
-    context.bot.send_message(chat_id=update.effective_chat.id, text=functionalities_help)
+async def functionalities_help_callback(update: Update, context: CallbackContext):
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=functionalities_help)
 
 
 def main():
@@ -74,10 +83,10 @@ def main():
     with open(token_file, 'r') as f:
         token = f.readline().strip()
 
-    updater = Updater(token)
-    load_functionalities(updater.dispatcher)
-    updater.dispatcher.add_handler(CommandHandler('help', functionalities_help_callback))
-    updater.start_polling()
+    app = ApplicationBuilder().token(token).build()
+    load_functionalities(app)
+    app.add_handler(CommandHandler('help', functionalities_help_callback))
+    app.run_polling()
 
 
 if __name__ == '__main__':
