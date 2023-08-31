@@ -36,8 +36,9 @@ test_install_image:
 test_install: test_install_image
 	docker run -v ${PWD}:/iibot --workdir /iibot iibot_install make install install_venv
 
-.PHONY: enable_current
-enable_current:
+.PHONY: enable
+enable:
+	@echo "Enabling version from VERSION env var: ${VERSION}; Just switching symlink, iibot service restart required after that"
 	@python3 scripts/install/install.py enable --workdir="$(IIBOT_INSTALL_WORKDIR)" --version=$(VERSION)
 
 .PHONY: show_installed
