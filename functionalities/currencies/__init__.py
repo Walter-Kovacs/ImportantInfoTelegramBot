@@ -1,29 +1,29 @@
 import re
 
 from telegram.ext import (
+    Application,
     CommandHandler,
-    Dispatcher,
-    Filters,
     MessageHandler,
+    filters,
 )
 
 from . import callbacks
 
 
-def add_to_bot(dispatcher: Dispatcher):
+def add_to_bot(app: Application):
     # Command /currency
-    dispatcher.add_handler(CommandHandler('currency', callbacks.currency_command_callback))
-    dispatcher.add_handler(CommandHandler('currency_available', callbacks.currency_available_command_callback))
+    app.add_handler(CommandHandler('currency', callbacks.currency_command_callback))
+    app.add_handler(CommandHandler('currency_available', callbacks.currency_available_command_callback))
 
     # Message "курс биткоина" - BTC rate for today
     pattern = re.compile(r'\bкурс\b +\bбитко[и,й]на\b', re.IGNORECASE)
-    msg_filter = Filters.text & (~Filters.command) & Filters.regex(pattern)
-    dispatcher.add_handler(MessageHandler(msg_filter, callbacks.bitcoin_rate_callback))
+    msg_filter = filters.TEXT & (~filters.COMMAND) & filters.Regex(pattern)
+    app.add_handler(MessageHandler(msg_filter, callbacks.bitcoin_rate_callback))
 
     # Message "курс <currency>" - currency rate for today
     pattern = re.compile(r'^курс +[а-я]+', re.IGNORECASE)
-    msg_filter = Filters.text & (~Filters.command) & Filters.regex(pattern)
-    dispatcher.add_handler(MessageHandler(msg_filter, callbacks.start_with_keyword_callback))
+    msg_filter = filters.TEXT & (~filters.COMMAND) & filters.Regex(pattern)
+    app.add_handler(MessageHandler(msg_filter, callbacks.start_with_keyword_callback))
 
 
 def get_help_info() -> tuple:

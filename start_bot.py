@@ -2,6 +2,7 @@ import argparse
 import importlib
 import logging
 import os
+import traceback
 from pathlib import Path
 from typing import List, Tuple
 
@@ -37,8 +38,8 @@ def load_functionalities(app: Application):
         try:
             functionality = importlib.import_module(f'{functionalities_directory}.{path.name}')
             functionality.add_to_bot(app)
-        except Exception as ex:
-            logging.warning(f'Cannot load functionality: {path}\n{repr(ex)}')
+        except Exception:
+            logging.warning(f'Cannot load functionality: {path}\n{traceback.format_exc()}')
             continue
 
         try:
