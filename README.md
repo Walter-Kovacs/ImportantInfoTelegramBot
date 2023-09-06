@@ -65,7 +65,7 @@ root@c090780efd0d:/iibot# make show_installed
 
 #### make deploy
 - Построит переменную окружения (в окружении команды make) VERSION на основе времени текущего коммита, ветки, хеша текущего коммита.
-- С помощью скрипта install.py cкопирует исходный код в директорию `/usr/local/important_info_bot/VERSION` и создаст virtualenv внутри
+- С помощью скрипта install.py cкопирует исходный код (из текущей директории) в директорию `/usr/local/important_info_bot/VERSION` и создаст virtualenv внутри
 - Установит зависимости прописанные в файле requirements в virtualenv внутри директории `/usr/local/important_info_bot/VERSION/.venv`
 - С помощью скрипта install.py переключит симлинк `/usr/local/important_info_bot/bot` на свежесозданную директорию `/usr/local/important_info_bot/VERSION`
 - Выполнит команду `systemctl status iibot` (мы используем debian на сервере, ожидается что сервис iibot уже настроен)
