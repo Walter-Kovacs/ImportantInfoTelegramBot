@@ -49,6 +49,10 @@ def switch_symlink(version_dir: Path, symlink: Path) -> bool:
         log.info(f'required version: {version_dir.name} already installed')
         return False
 
+    if not os.path.exists(version_dir):
+        log.error(f"desired version {version_dir} not installed (doesn't exist)")
+        return False
+
     log.info(f'redirecting symlink {symlink}: {current} --> {version_dir}')
     tmpsymlink = Path(str(symlink) + '_tmp')
     tmpsymlink.symlink_to(version_dir)
@@ -125,6 +129,7 @@ def get_list_of_available_versions(install_dir: Path) -> List[str]:
         if elem == symlink_tail:
             continue
         versions_list.append(elem)
+    versions_list.sort(reverse=True)
     return versions_list
 
 def command_show_installed_versions(args) -> None:

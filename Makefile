@@ -46,5 +46,5 @@ show_installed:
 	@python3 scripts/install/install.py show_installed --workdir="${IIBOT_INSTALL_WORKDIR}"
 
 .PHONY: deploy
-deploy: install install_venv enable_current reload
+deploy: install install_venv enable reload
 	@systemctl status iibot
