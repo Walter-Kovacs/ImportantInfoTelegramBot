@@ -30,8 +30,9 @@ python install.py install < --workdir=/path/to/install_dirr > <--source_code_dir
 python install.py enable < --workdir=/path/to/install_dir > < --version=vesrion_string >
 ```
 
-создаёт симлинк `<workdir>/bot`  указзывающий на `<workdir>/<vesrion>`. Если симлинк существовал, то переключает его, при этом в логах пишется куда указывал симлинк и куда стал указывать
-пример лога команды
+создаёт симлинк `<workdir>/bot`  указзывающий на `<workdir>/<vesrion>`. Если симлинк существовал, то переключает его, при этом в логах пишется куда указывал симлинк и куда стал указывать.
+
+Пример лога команды:
 ```
 Enabling version from VERSION env var: 2023-08-30_08_02-deploy_script_upgrade-e9b167f; Just switching symlink, iibot service restart required after that
 [INFO]: installation directory found: /usr/local/important_info_bot
