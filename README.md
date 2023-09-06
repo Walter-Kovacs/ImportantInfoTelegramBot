@@ -1,8 +1,8 @@
 # ImportantInfoTelegramBot
 
-## Скрипт рвсклоадки из директории с кодом
+## Скрипт расклоадки из директории с кодом
 
-леижит в [scripts/install/install.py](./srcipts/install/install.py)
+леижит в [scripts/install/install.py](./scripts/install/install.py)
 
 ### Описание интерфейса
 
