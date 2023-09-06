@@ -47,8 +47,9 @@ python install.py show_installed < --workdir=/path/to/install_dir >
 ```
 
 выводит список директорий (за исключением симлинка bot) в workdir. Список отсортирован по-убыванию лексикографически
-Если на одну из директорий списка указывает симлинк `<workdir>/bot` она помечатеся звёздочкой
-пример вывода:
+Если на одну из директорий списка указывает симлинк `<workdir>/bot` она помечатеся звёздочкой.
+
+Пример вывода:
 ```
 root@c090780efd0d:/iibot# make show_installed
 [INFO]: installation directory found: /usr/local/important_info_bot
