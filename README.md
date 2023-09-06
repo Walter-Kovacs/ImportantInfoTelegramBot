@@ -1,6 +1,6 @@
 # ImportantInfoTelegramBot
 
-## Скрипт расклоадки из директории с кодом
+## Скрипт раскладки из директории с кодом
 
 леижит в [scripts/install/install.py](./scripts/install/install.py)
 
