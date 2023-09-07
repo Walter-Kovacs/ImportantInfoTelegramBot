@@ -1,9 +1,10 @@
 import argparse
 import logging
+import os
 import shutil
 import venv
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 log = logging.getLogger("install")
 log_handler = logging.StreamHandler()
@@ -16,8 +17,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument('command', type=str, help='install,activate')
 parser.add_argument('--workdir', type=str, required=True)
 parser.add_argument('--source_code_dir', type=str, required=False)
-parser.add_argument('--version', type=str, required=True)
+parser.add_argument('--version', type=str, required=False)
 
+
+symlink_tail = 'bot'
 
 def prepare_workdir(dirpath: str) -> Path:
     install_dir: Path = Path(dirpath)
@@ -33,15 +36,21 @@ def prepare_workdir(dirpath: str) -> Path:
 
     return install_dir
 
-
-def switch_symlink(version_dir: Path, symlink: Path) -> bool:
+def check_symlink(symlink: Path):
     if not symlink.is_symlink() and symlink.exists():
         log.error(f'nonsymlink file with name of working symlink ({symlink}) already exists')
         exit(1)
 
+def switch_symlink(version_dir: Path, symlink: Path) -> bool:
+    check_symlink(symlink)
+
     current = symlink.resolve().__str__()
     if current == str(version_dir):
         log.info(f'required version: {version_dir.name} already installed')
+        return False
+
+    if not os.path.exists(version_dir):
+        log.error(f"desired version {version_dir} not installed (doesn't exist)")
         return False
 
     log.info(f'redirecting symlink {symlink}: {current} --> {version_dir}')
@@ -67,26 +76,20 @@ def install_files(source_code_dir: Path, version_dir: Path):
     log.info(f'setup wirtual enviroment into {venv_dir}')
     venv.create(venv_dir, clear=True, with_pip=True)
 
-
-def switch_symlink_and_exit(version_dir: Path, symlink: Path):
-    restart_required = switch_symlink(version_dir, symlink)
-    if restart_required:
-        exit(0)
-
-    exit(2)
-
-
-def extract_params_from_args(args) -> Dict[str, Path]:
+def extract_params_from_args(args) -> Dict[str, Optional[Path]]:
     source_code_dir: Path = Path(args.source_code_dir or '')
     install_dir = prepare_workdir(args.workdir)
-    symlink = install_dir.joinpath("bot")
+    symlink = install_dir.joinpath(symlink_tail)
 
-    version_dir = install_dir.joinpath(args.version)
+    version_dir: Optional[Path] = None
+    if args.version is not None:
+        version_dir = install_dir.joinpath(args.version)
 
     return {
-        'source_code_dir': source_code_dir,
-        'version_dir': version_dir,
-        'symlink': symlink,
+        'source_code_dir': source_code_dir, # directory with source code to install
+        'install_dir': install_dir,         # directory with all versions
+        'version_dir': version_dir,         # directory for sertain version
+        'symlink': symlink,                 # path to symlink that should point to some version; used in systemctl to operate with service
     }
 
 
@@ -114,8 +117,38 @@ def command_enable(args) -> None:
     params = extract_params_from_args(args)
     symlink = params.get('symlink')
     version_dir = params.get('version_dir')
-    assert symlink is not None and version_dir is not None, 'arguments parsed incorrectly; one of (or both) symlink {symlink} version_dir {version_dir} is None'
+    assert symlink is not None and version_dir is not None, f'arguments parsed incorrectly; one of (or both) symlink {symlink} version_dir {version_dir} is None'
     switch_symlink(version_dir, symlink)
+
+def get_list_of_available_versions(install_dir: Path) -> List[str]:
+    install_dir_content = os.listdir(install_dir)
+    versions_list: List[str] = []
+    for elem in install_dir_content:
+        if os.path.isfile(os.path.join(install_dir, elem)):
+            continue
+        if elem == symlink_tail:
+            continue
+        versions_list.append(elem)
+    versions_list.sort(reverse=True)
+    return versions_list
+
+def command_show_installed_versions(args) -> None:
+    params = extract_params_from_args(args)
+    install_dir = params.get('install_dir')
+    symlink = params.get('symlink')
+    assert install_dir is not None, f'invalid arguments: {args}; failed to extract install_dir from them'
+    assert symlink is not None, f'invalid arguments: {args}; failed to build symlink params from them'
+
+    current_version = symlink.resolve().stem
+    versions_installed = get_list_of_available_versions(install_dir)
+    versions_printlines: List[str] = []
+    for ver in versions_installed:
+        if ver == current_version:
+            versions_printlines.append("\t* " + ver)
+        else:
+            versions_printlines.append("\t  " + ver)
+    log.info(f'Available versions in install_dir ({install_dir}):\n' + '\n '.join(versions_printlines))
+
 
 def main():
     args = parser.parse_args()
@@ -124,6 +157,8 @@ def main():
         command_install(args)
     elif args.command == 'enable':
         command_enable(args)
+    elif args.command == 'show_installed':
+        command_show_installed_versions(args)
     else:
         log.error(f'unknown command {args.command}')
 
