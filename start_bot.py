@@ -7,12 +7,8 @@ from pathlib import Path
 from typing import List, Tuple
 
 from telegram import Update
-from telegram.ext import (
-    Application,
-    ApplicationBuilder,
-    CallbackContext,
-    CommandHandler,
-)
+from telegram.ext import (Application, ApplicationBuilder, CallbackContext,
+                          CommandHandler)
 
 from components.config.config import config
 
@@ -47,6 +43,8 @@ def load_functionalities(app: Application):
             f_help.append((help_functionality_name, help_functionality_description))
         except AttributeError:
             pass
+        except ValueError:
+            logging.warning(f'Cannot create helpstring for functionality: {path}\n{traceback.format_exc()}')
 
     f_help.sort()
     construct_functionalities_help_string(f_help)
