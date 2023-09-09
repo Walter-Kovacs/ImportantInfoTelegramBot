@@ -47,6 +47,8 @@ def load_functionalities(app: Application):
             f_help.append((help_functionality_name, help_functionality_description))
         except AttributeError:
             pass
+        except ValueError:
+            logging.warning(f'Cannot create helpstring for functionality: {path}\n{traceback.format_exc()}')
 
     f_help.sort()
     construct_functionalities_help_string(f_help)
