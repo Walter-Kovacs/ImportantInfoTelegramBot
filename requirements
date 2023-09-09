@@ -1,5 +1,5 @@
 anyio==3.7.1
-APScheduler==3.6.3
+APScheduler==3.10.4
 attrs==21.4.0
 autobahn==23.1.2
 Automat==22.10.0

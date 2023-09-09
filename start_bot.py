@@ -7,8 +7,12 @@ from pathlib import Path
 from typing import List, Tuple
 
 from telegram import Update
-from telegram.ext import (Application, ApplicationBuilder, CallbackContext,
-                          CommandHandler)
+from telegram.ext import (
+    Application,
+    ApplicationBuilder,
+    CallbackContext,
+    CommandHandler,
+)
 
 from components.config.config import config
 
