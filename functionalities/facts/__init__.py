@@ -1,22 +1,23 @@
 import re
 
-from telegram import Update, ParseMode
+from telegram import Update
+from telegram.constants import ParseMode
 from telegram.ext import (
-    CallbackContext,
-    Dispatcher,
-    Filters,
+    Application,
+    ContextTypes,
     MessageHandler,
+    filters,
 )
 
 from .random_fact import get_random_important_fact
 
 
-def add_to_bot(dispatcher: Dispatcher):
+def add_to_bot(app: Application):
     pattern = re.compile(r'^(расскажи|давай|дай-ка|хочу)\s+факт', re.IGNORECASE)
-    msg_filter = Filters.text & (~Filters.command) & Filters.regex(pattern)
-    update_filter = Filters.chat_type.private | Filters.chat_type.group | Filters.chat_type.supergroup
+    msg_filter = filters.TEXT & (~filters.COMMAND) & filters.Regex(pattern)
+    update_filter = filters.ChatType.PRIVATE | filters.ChatType.GROUP | filters.ChatType.SUPERGROUP
     handler = MessageHandler(msg_filter & update_filter, random_important_fact_callback)
-    dispatcher.add_handler(handler)
+    app.add_handler(handler)
 
 
 def get_help_info() -> tuple:
@@ -26,11 +27,11 @@ def get_help_info() -> tuple:
     )
 
 
-def random_important_fact_callback(update: Update, context: CallbackContext):
+async def random_important_fact_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(f'preparing random fact')
 
     chat_type = update.effective_chat.type
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=get_random_important_fact(),
         parse_mode=ParseMode.HTML,
