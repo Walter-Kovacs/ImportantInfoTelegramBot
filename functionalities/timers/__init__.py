@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 def add_to_bot(app: Application):
     app.add_handler(CommandHandler('timer', set_timer))
 
+job_queue_pref = __name__
 max_timer_seconds = 3600 * 24 # Allow to set timer up to one day only
 max_timer_per_user = 5
 
@@ -36,10 +37,11 @@ time_str_re = re.compile(r'^(\d+)('+'|'.join(time_symbols) +')$')
 def get_help_info() -> tuple:
     return (
         '/timer 10s[12m, 2h] some_message',
-            'Таймер',
-            'Поставит персональный таймер на указанное время.\n' +
+            'Таймер\n',
+            'Без аргументов: покажет поставленные вами тамймеры.\n\n' +
+            'С аргументами: Поставит персональный таймер на указанное время.\n' +
             'По прошестивю времени тегнет человека в чате ставившего таймер\n' +
-            f'Время поддерживается в формате: {time_symbols_for_help}',
+            f'Время поддерживается в формате: [{" ".join(time_symbols_for_help)}]',
             )
 
 def validate_args(args: Optional[List[str]]) -> Tuple[int, str, Optional[str]]:
@@ -72,6 +74,9 @@ def validate_args(args: Optional[List[str]]) -> Tuple[int, str, Optional[str]]:
 
     return timer_seconds, message, None
 
+def get_timers_info_for_user(user_id: int) -> str:
+    return ""
+
 async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_message is None:
         raise AssertionError('effective_message is None in update')
@@ -89,12 +94,16 @@ async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.effective_message.reply_text(f'Что-то пошло не так')
         return
 
+    timers_for_this_user = job_queue.get_jobs_by_name(f'{job_queue_pref}_{user.id}')
+    if context.args is None or len(context.args) == 0:
+        await update.effective_message.reply_text(get_timers_info_for_user(user.id))
+        return
+
     timer_seconds, timer_message, error_msg = validate_args(context.args)
     if error_msg is not None:
         await update.effective_message.reply_text(error_msg)
         return
 
-    timers_for_this_user = job_queue.get_jobs_by_name(f'{user.id}')
     if timers_for_this_user is not None and len(timers_for_this_user) > max_timer_per_user:
         await update.effective_message.reply_text('Слишком много таймеров для одного, новый не поставлю.')
         return
