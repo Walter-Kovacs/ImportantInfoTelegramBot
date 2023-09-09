@@ -2,22 +2,22 @@ import re
 
 from telegram import Update
 from telegram.ext import (
-    CallbackContext,
-    Dispatcher,
-    Filters,
+    Application,
+    ContextTypes,
     MessageHandler,
+    filters,
 )
 
 
-def add_to_bot(dispatcher: Dispatcher):
+def add_to_bot(app: Application):
     pattern = re.compile(r'\bпартеечку\b', re.IGNORECASE)
-    msg_filter = Filters.text & (~Filters.command) & Filters.regex(pattern)
+    msg_filter = filters.TEXT & (~filters.COMMAND) & filters.Regex(pattern)
     handler = MessageHandler(msg_filter, game_request_callback)
-    dispatcher.add_handler(handler)
+    app.add_handler(handler)
 
 
-def game_request_callback(update: Update, context: CallbackContext):
-    context.bot.send_message(chat_id=update.effective_chat.id, text=decline_game_request(update.message.text))
+async def game_request_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=decline_game_request(update.message.text))
 
 
 def decline_game_request(msg: str) -> str:

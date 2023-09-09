@@ -1,13 +1,13 @@
 import datetime
 
 from telegram import Update
-from telegram.ext import CallbackContext
+from telegram.ext import ContextTypes
 
 from .services import binance
 from .services import cbr
 
 
-def currency_command_callback(update: Update, context: CallbackContext):
+async def currency_command_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = context.args
     if len(args) == 0:
         codes = ('USD', 'EUR', 'CNY', 'KRW')
@@ -20,7 +20,7 @@ def currency_command_callback(update: Update, context: CallbackContext):
         try:
             date = datetime.date.fromisoformat(args[1])
         except ValueError:
-            context.bot.send_message(
+            await context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text='Некорректный формат даты. Введите дату в формате гггг-мм-дд',
             )
@@ -39,23 +39,23 @@ def currency_command_callback(update: Update, context: CallbackContext):
         if date != datetime.date.today():
             text = f'Курс на {date}:\n' + text
 
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=text,
     )
 
 
-def currency_available_command_callback(update: Update, context: CallbackContext):
+async def currency_available_command_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     currencies = sorted(cbr.currencies.codes_by_imenitelny_padezh.keys())
     available_currencies = [f'{c} - {cbr.currencies.codes_by_imenitelny_padezh[c]}' for c in currencies]
 
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text='Доступные валюты:\n' + '\n'.join(available_currencies),
     )
 
 
-def start_with_keyword_callback(update: Update, context: CallbackContext):
+async def start_with_keyword_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     currency = update.message.text.split(maxsplit=1)[1]  # message text: "курс <валюты>"
     code = cbr.currencies.codes_by_phrase.get(currency.lower())
     if code is not None:
@@ -68,13 +68,13 @@ def start_with_keyword_callback(update: Update, context: CallbackContext):
     else:
         text = 'Не могу узнать курс валюты :('
 
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=text,
     )
 
 
-def bitcoin_rate_callback(update: Update, context: CallbackContext):
+async def bitcoin_rate_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         btc_busd: float = binance.get_btc_busd_rate()
         usd_rub_info: tuple = cbr.get_currencies_rates(datetime.date.today(), 'USD')['USD']
@@ -85,7 +85,7 @@ def bitcoin_rate_callback(update: Update, context: CallbackContext):
     except binance.ServiceError:
         text = 'Не могу узнать курс :('
 
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=text,
     )
