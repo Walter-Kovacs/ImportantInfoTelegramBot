@@ -34,7 +34,17 @@ def load_functionalities(app: Application):
     ]
 
     f_help = []
+    enable_or_disable, functionalities_in_config = get_enable_disable_functionalities_list()
     for path in paths:
+        if enable_or_disable == 'enable':
+            if path.name not in functionalities_in_config:
+                continue
+            logging.info(f'Functionality {path.name} enabled')
+        if enable_or_disable == 'disable':
+            if path.name in functionalities_in_config:
+                logging.info(f'Functionality {path.name} disabled')
+                continue
+
         try:
             functionality = importlib.import_module(f'{functionalities_directory}.{path.name}')
             functionality.add_to_bot(app)
@@ -52,6 +62,26 @@ def load_functionalities(app: Application):
 
     f_help.sort()
     construct_functionalities_help_string(f_help)
+
+
+def get_enable_disable_functionalities_list() -> Tuple[str, List[str]]:
+    """
+    Config file:
+{
+  ...
+  "functionalities": {
+    "enable": [],
+    "disable": []
+  }
+  ...
+}
+    Returns:
+        ('enable' or 'disable', ['functionality, ...'])
+    """
+    f: dict = config.data.get('functionalities', dict())
+    if 'enable' in f:
+        return 'enable', f.get('enable')
+    return 'disable', f.get('disable', list())
 
 
 def construct_functionalities_help_string(f_help: List[Tuple[str, str]]):

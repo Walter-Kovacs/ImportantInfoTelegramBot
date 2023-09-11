@@ -1,5 +1,4 @@
 import logging
-from typing import Union
 
 from binance.error import ClientError
 
