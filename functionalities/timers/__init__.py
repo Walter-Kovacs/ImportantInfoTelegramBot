@@ -1,10 +1,12 @@
 import logging
 import re
 import traceback
+import datetime
 from typing import Dict, List, Optional, Tuple
 from attrs import define
 
 from telegram import Update
+from telegram.constants import ChatType
 from telegram.ext import Application, CommandHandler, ContextTypes, Job
 
 logger = logging.getLogger(__name__)
@@ -76,9 +78,6 @@ def validate_args(args: Optional[List[str]]) -> Tuple[int, str, Optional[str]]:
 
     return timer_seconds, message, None
 
-def get_timers_info_for_user(user_id: int) -> str:
-    return ""
-
 @define
 class TimerCallbackData:
     message: str
@@ -101,13 +100,41 @@ async def timer_callback(context: ContextTypes.DEFAULT_TYPE) -> None:
         logger.error('username is missed in user_data')
         return
 
+    user_tag_prefix = f'@{username}, '
+    if context.chat_data is not None and context.chat_data.get('chat_type', '') == ChatType.PRIVATE:
+        # don't tag in private chat
+        user_tag_prefix = ''
+
     # validation, that sends msg to telegram if errors occured
     data = job.data
     if data is None or not isinstance(data, TimerCallbackData):
-        await context.bot.send_message(chat_id, text=f'@{username} таймер истёк, но о чём он должен был напомнить я потерял :(')
+        await context.bot.send_message(chat_id, text=f'{user_tag_prefix}таймер истёк, но о чём он должен был напомнить я потерял :(')
         return
 
-    await context.bot.send_message(chat_id, text=f"@{username} таймер истёк. Он был про '{data.message}' (c)")
+    if data.message == '':
+        await context.bot.send_message(chat_id, text=f'{user_tag_prefix} таймер истёк. Он был без описания')
+        return
+
+    await context.bot.send_message(chat_id, text=f"{user_tag_prefix} таймер истёк. Он был про '{data.message}' (c)")
+
+def format_timer_jobs(jobs: Tuple[Job, ... ]) -> str:
+    if len(jobs) == 0:
+        return 'Нет активных таймеров'
+    active_timers: List[str] = []
+    for j in jobs:
+        dt = j.job.next_run_time - datetime.datetime.now(tz=j.job.next_run_time.tzinfo)
+        dt = str(dt).split('.')[0] # remove miliseconds from string format
+        timer_msg = 'Таймер без описания'
+        job_data = j.data
+        if job_data is not None and isinstance(job_data, TimerCallbackData):
+            if job_data.message != '':
+                timer_msg = job_data.message
+        else:
+            logger.error(f'format_timer_jobs: job: {j.name} has unexpected job.data: {job_data}; should be TimerCallbackData obj')
+        active_timers.append( 'через {} - {}'.format(dt, timer_msg))
+
+    return 'Активные таймеры:\n' + '\n'.join(active_timers)
+
 
 
 async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -130,7 +157,7 @@ async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     queue_key = f'{job_queue_pref}_{user.id}'
     timers_for_this_user = job_queue.get_jobs_by_name(queue_key)
     if context.args is None or len(context.args) == 0:
-        await update.effective_message.reply_text(get_timers_info_for_user(user.id))
+        await update.effective_message.reply_text(format_timer_jobs(timers_for_this_user))
         return
 
     timer_seconds, timer_message, error_msg = validate_args(context.args)
@@ -138,7 +165,7 @@ async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.effective_message.reply_text(error_msg)
         return
 
-    if timers_for_this_user is not None and len(timers_for_this_user) > max_timer_per_user:
+    if timers_for_this_user is not None and len(timers_for_this_user) >= max_timer_per_user:
         await update.effective_message.reply_text('Слишком много таймеров для одного, новый не поставлю.')
         return
 
@@ -149,6 +176,13 @@ async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
     else:
         context.user_data['username'] = user.username
+
+    if context.chat_data is None:
+        context.chat_data = {
+            'chat_type': update.effective_message.chat.type,
+        }
+    else:
+        context.chat_data['chat_type'] = update.effective_message.chat.type
 
     job_queue.run_once(
         timer_callback, timer_seconds,
