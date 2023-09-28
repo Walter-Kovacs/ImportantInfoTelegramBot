@@ -116,7 +116,7 @@ async def timer_callback(context: ContextTypes.DEFAULT_TYPE) -> None:
         await context.bot.send_message(chat_id, text=f'{user_tag_prefix} таймер истёк. Он был без описания')
         return
 
-    await context.bot.send_message(chat_id, text=f"{user_tag_prefix} таймер истёк. Он был про '{data.message}' (c)")
+    await context.bot.send_message(chat_id, text=f"{user_tag_prefix} таймер истёк: <{data.message}>")
 
 def format_timer_jobs(jobs: Tuple[Job, ... ]) -> str:
     if len(jobs) == 0:
