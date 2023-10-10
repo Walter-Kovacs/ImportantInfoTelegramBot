@@ -2,9 +2,9 @@ import json
 import logging
 import traceback
 from typing import Dict, List, Any, Optional, Set, Union, Tuple
-from abc import ABC, abstractmethod
-from attrs import define
+from attrs import define, field
 from components.configsecretholders.jsonfile import JSONFileSH
+from components.config.abstracts import SecretsHolder
 
 logger = logging.getLogger('config')
 
@@ -72,26 +72,40 @@ def _set_value_by_path(
 
     _set_value_by_path(next_node, path[1:], value)
 
-
-class SecretsHolder(ABC):
-    @abstractmethod
-    def get_secrets(self, secrets_names: List[str]) -> Dict[str, str]:
-        pass
+SECRET_PREFIX = 'SECRET:'
 
 @define
 class Secret:
     name_in_holder: str
     path_in_data: List[Union[str, int]]
-    value: Optional[Any]
+    value: Optional[Any] = field(default=None)
 
 
 class Config:
     data: Dict = {}
 
+    @staticmethod
+    def _lookup_secrets_next_layer(node: Union[Dict, List], current_path: List[Union[str, int]]) -> List[Secret]:
+        secrets: List[Secret] = []
+        if isinstance(node, dict):
+            for k, subnode in node.items():
+                secrets += Config._lookup_secrets_next_layer(subnode, current_path + [k])
+        elif isinstance(node, list):
+            for idx, subnode in enumerate(node):
+                secrets += Config._lookup_secrets_next_layer(subnode, current_path + [idx])
+        elif isinstance(node, str) and node.startswith(SECRET_PREFIX):
+            secrets = [
+                Secret(
+                    name_in_holder = node[len(SECRET_PREFIX):],
+                    path_in_data = current_path,
+                )
+            ]
+
+        return secrets
+
     @classmethod
     def _search_for_secrets(cls) -> List[Secret]:
-        # TODO
-        return []
+        return Config._lookup_secrets_next_layer(cls.data, [])
 
     @classmethod
     def _load_secrets_holder_from_config(cls) -> SecretsHolder:
@@ -175,6 +189,13 @@ class Config:
             _set_value_by_path(cls.data, secret.path_in_data, secret.value)
 
     @classmethod
+    def _set_class_data(cls, d: Dict):
+        """
+        Internal method to use in tests
+        """
+        cls.data = d
+
+    @classmethod
     def read_from_file(cls, config_path: str) -> bool:
         with open(config_path, 'r') as config_file:
             cls.data = json.load(config_file)
@@ -182,7 +203,8 @@ class Config:
         logger.info('Config file red successfully')
         logger.info('Searching for secrets placeholders')
         # deep dive into self.data searching string values with SECRET: prefix
-        secrets: List[Secret] = []
+        secrets: List[Secret] = cls._search_for_secrets()
+
         if len(secrets) != 0:
             try:
                 logger.info('Resolving secrets')

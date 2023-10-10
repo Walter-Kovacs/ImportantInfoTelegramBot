@@ -1,5 +1,5 @@
 from typing import List, Dict
-from components.config.config import SecretsHolder
+from components.config.abstracts import SecretsHolder
 
 class JSONFileSH(SecretsHolder):
     _secrets_to_replace: Dict[str, str]
