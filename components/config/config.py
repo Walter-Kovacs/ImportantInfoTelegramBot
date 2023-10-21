@@ -1,10 +1,12 @@
 import json
 import logging
 import traceback
-from typing import Dict, List, Any, Optional, Set, Union, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
+
 from attrs import define, field
-from components.configsecretholders.jsonfile import JSONFileSH
+
 from components.config.abstracts import SecretsHolder
+from components.configsecretholders.jsonfile import JSONFileSH
 
 logger = logging.getLogger('config')
 
@@ -90,7 +92,10 @@ class Config:
     data: Dict = {}
 
     @staticmethod
-    def _lookup_secrets_next_layer(node: Union[Dict, List], current_path: List[Union[str, int]]) -> List[Secret]:
+    def _lookup_secrets_next_layer(
+        node: Union[Dict, List],
+        current_path: List[Union[str, int]],
+    ) -> List[Secret]:
         secrets: List[Secret] = []
         if isinstance(node, dict):
             for k, subnode in node.items():
@@ -124,8 +129,10 @@ class Config:
         """
         secret_holder_conf = cls.data.get('secrets_holder', None)
         if secret_holder_conf is None:
-            raise SecretsReplaceException('Failed to found secret_holder config into common config ' +
-                                          'the config is expected to be placed into "secret_holder" config object')
+            raise SecretsReplaceException(
+                'Failed to found secret_holder config into common config ' +
+                'the config is expected to be placed into "secret_holder" config object',
+            )
 
         holder_type = secret_holder_conf.get('type', '')
         if holder_type == '':
@@ -138,10 +145,11 @@ class Config:
             try:
                 secret_holder = JSONFileSH(filepath)
             except Exception as e:
-                raise SecretsReplaceException('Failed to init jsonfile secret holder: {e}')
+                raise SecretsReplaceException('Failed to init jsonfile secret holder: {e}') from e
         else:
-            raise SecretsReplaceException(f'Unknown type of secret holder requested in config: {holder_type}; ' +
-                                          'config types supported: "jsonfile"')
+            raise SecretsReplaceException(
+                f'Unknown type of secret holder requested in config: {holder_type}; ' +
+                'config types supported: "jsonfile"')
         return secret_holder
 
     @classmethod
@@ -171,14 +179,17 @@ class Config:
 
         unique_secret_names, dupls = cls._check_dupls_in_secret_names(secrets)
         if dupls is not None:
-            raise SecretsReplaceException(f'Failed to resolve secrets in config, duplications found: {dupls}')
+            raise SecretsReplaceException(
+                f'Failed to resolve secrets in config, duplications found: {dupls}',
+            )
 
         try:
             resolved_secret_names = secrets_holder.get_secrets(unique_secret_names)
         except Exception as e:
             raise SecretsReplaceException(
-                f'Failed to resolve secret in config; secrets_holder ({type(secrets_holder)}) exception: {e}',
-            )
+                'Failed to resolve secret in config; '+
+                f'secrets_holder ({type(secrets_holder)}) exception: {e}',
+            ) from e
 
         for secret in secrets:
             secret.value = resolved_secret_names[secret.name_in_holder]
@@ -202,7 +213,7 @@ class Config:
 
     @classmethod
     def read_from_file(cls, config_path: str) -> bool:
-        with open(config_path, 'r') as config_file:
+        with open(config_path, 'r', encoding='utf-8') as config_file:
             cls.data = json.load(config_file)
 
         logger.info('Config file read successfully')
@@ -216,11 +227,11 @@ class Config:
                 secrets = cls._resolve_secrets(secrets)
                 logger.info('Replacing secrets placeholders')
                 cls._replace_secrets(secrets)
-            except SecretsReplaceException as e:
-                logger.error(f'Failed to replace secret values of config {traceback.format_exc()}')
+            except SecretsReplaceException:
+                logger.error('Failed to replace secret values of config %s', traceback.format_exc())
                 return False
             except Exception as e:
-                logger.error(f"Caught unknown exception during loading the config {e}")
+                logger.error("Caught unknown exception during loading the config %s", e)
                 return False
         else:
             logger.info('Secrets not found in config, so loaded config already prepared')

@@ -13,6 +13,7 @@ venv/
 
 # Others
 tmp_*/
+.coverage
 
 # Data files
 data/
