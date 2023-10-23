@@ -1,6 +1,7 @@
 from typing import List, Dict
 from components.config.abstracts import SecretsHolder
 
+
 class JSONFileSH(SecretsHolder):
     _secrets_to_replace: Dict[str, str]
 
@@ -12,4 +13,4 @@ class JSONFileSH(SecretsHolder):
         pass
 
     def get_secrets(self, secrets_names: List[str]) -> Dict[str, str]:
-       return {}
+        return {}
