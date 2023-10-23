@@ -8,16 +8,19 @@ from components.config.abstracts import SecretsHolder
 
 logger = logging.getLogger('config')
 
+
 class SecretsReplaceException(Exception):
     pass
+
 
 class SetValueByPathException(Exception):
     pass
 
+
 def _set_value_by_path(
-    current_node: Union[dict, list],
-    path: List[Union[str,int]],
-    value: Any,
+        current_node: Union[dict, list],
+        path: List[Union[str, int]],
+        value: Any,
 ):
     """
     Recursive function to set <value> into some certain place of <current_node>
@@ -46,7 +49,7 @@ def _set_value_by_path(
             # it's surely key, so node should be a dict, check this fact
             if not isinstance(next_key, dict):
                 raise SetValueByPathException(
-                    f'Failed to set value into string key "{path[0]}" for node ({current_node}), '+
+                    f'Failed to set value into string key "{path[0]}" for node ({current_node}), ' +
                     'cause of the last one is not dictionary',
                 )
             current_node[next_key] = value
@@ -62,7 +65,7 @@ def _set_value_by_path(
         # it's surely key, so node should be a dict, check this fact
         if not isinstance(next_key, dict):
             raise SetValueByPathException(
-                f'Failed to set value into string key "{path[0]}" for node ({current_node}), '+
+                f'Failed to set value into string key "{path[0]}" for node ({current_node}), ' +
                 'cause of the last one is not dictionary',
             )
         next_node = current_node[next_key]
@@ -72,7 +75,9 @@ def _set_value_by_path(
 
     _set_value_by_path(next_node, path[1:], value)
 
+
 SECRET_PREFIX = 'SECRET:'
+
 
 @define
 class Secret:
@@ -96,8 +101,8 @@ class Config:
         elif isinstance(node, str) and node.startswith(SECRET_PREFIX):
             secrets = [
                 Secret(
-                    name_in_holder = node[len(SECRET_PREFIX):],
-                    path_in_data = current_path,
+                    name_in_holder=node[len(SECRET_PREFIX):],
+                    path_in_data=current_path,
                 )
             ]
 
@@ -109,18 +114,18 @@ class Config:
 
     @classmethod
     def _load_secrets_holder_from_config(cls) -> SecretsHolder:
-        '''
-        Searchs the config of certain secrets holder in the common config
+        """
+        Searches the config of certain secrets holder in the common config
         Expects that common config is already loaded into cls.data dictionary
 
         the key "type" should present into this dict
         Other fields depend on the value of the key "type"
-        and provide the params of ceirtain secret holder of type "type"
-        '''
+        and provide the params of certain secret holder of type "type"
+        """
         secret_holder_conf = cls.data.get('secrets_holder', None)
         if secret_holder_conf is None:
-            raise SecretsReplaceException('Failed to found secret_holder config into common config '+
-                        'the config is expected to be placed into "secret_holder" config object')
+            raise SecretsReplaceException('Failed to found secret_holder config into common config ' +
+                                          'the config is expected to be placed into "secret_holder" config object')
 
         holder_type = secret_holder_conf.get('type', '')
         if holder_type == '':
@@ -128,23 +133,23 @@ class Config:
         if holder_type == 'jsonfile':
             filepath = secret_holder_conf.get("filepath", "")
             if filepath == "":
-                raise SecretsReplaceException('Invalid format of "jsonfile" secret holder config: "filepath" key is missing')
+                raise SecretsReplaceException(
+                    'Invalid format of "jsonfile" secret holder config: "filepath" key is missing')
             try:
                 secret_holder = JSONFileSH(filepath)
             except Exception as e:
                 raise SecretsReplaceException('Failed to init jsonfile secret holder: {e}')
         else:
             raise SecretsReplaceException(f'Unknown type of secret holder requested in config: {holder_type}; ' +
-                                          'config types suppoerted: "jsonfile"')
+                                          'config types supported: "jsonfile"')
         return secret_holder
-
 
     @classmethod
     def _check_dupls_in_secret_names(
-        cls,
-        unresolved_secrets: List[Secret],
+            cls,
+            unresolved_secrets: List[Secret],
     ) -> Tuple[List[str], Optional[List[str]]]:
-        unique_secrets: Set[str]  = set()
+        unique_secrets: Set[str] = set()
         dupls: List[str] = []
         for secret in unresolved_secrets:
             if secret.name_in_holder in unique_secrets:
@@ -200,7 +205,7 @@ class Config:
         with open(config_path, 'r') as config_file:
             cls.data = json.load(config_file)
 
-        logger.info('Config file red successfully')
+        logger.info('Config file read successfully')
         logger.info('Searching for secrets placeholders')
         # deep dive into self.data searching string values with SECRET: prefix
         secrets: List[Secret] = cls._search_for_secrets()
@@ -209,7 +214,7 @@ class Config:
             try:
                 logger.info('Resolving secrets')
                 secrets = cls._resolve_secrets(secrets)
-                logger.info('Replaceing secrets placeholders')
+                logger.info('Replacing secrets placeholders')
                 cls._replace_secrets(secrets)
             except SecretsReplaceException as e:
                 logger.error(f'Failed to replace secret values of config {traceback.format_exc()}')
@@ -220,7 +225,6 @@ class Config:
         else:
             logger.info('Secrets not found in config, so loaded config already prepared')
         return True
-
 
 
 config = Config()
