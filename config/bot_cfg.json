@@ -1,0 +1,14 @@
+{
+        "secrets_holder": {
+            "type": "jsonfile",
+            "filepath": "data/secrets.json"
+        },
+        "storage": {
+            "json_user_db_filepath": "data/user_db.json"
+        },
+        "logging": {
+            "level": "INFO"
+        },
+        "functionality": "config/functionality",
+        "bot_token": "SECRET:bot_token"
+}
