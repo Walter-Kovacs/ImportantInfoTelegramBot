@@ -18,6 +18,41 @@ class SecretsReplaceException(Exception):
 class SetValueByPathException(Exception):
     pass
 
+def _validate_current_node_and_next_key(
+    current_node: Union[dict,list],
+    next_key: Union[str, int],
+) -> None:
+    """
+    Function that chesks the consistency of node and
+    the key alleged to be present in that node
+    """
+    if isinstance(current_node, dict):
+        # so the next_hey should present as a key in the current dict-node
+        if next_key not in current_node:
+            raise SetValueByPathException(
+                f"Inconsistent {next_key} into dict-node ({current_node})" +
+                "key doesn't exist in dict",
+            )
+        return
+
+    # if current node is not a dict, it have to be a list
+    # and the next_key have to be an index of int type
+    if isinstance(current_node, list) and isinstance(next_key, int):
+        if next_key < 0:
+            raise SetValueByPathException(
+                f'Negative index [{next_key}] for list-node ({current_node})',
+            )
+        if next_key >= len(current_node):
+            raise SetValueByPathException(
+                f'Inconsistent index [{next_key}] for list-node ({current_node}), ' +
+                'cause of index is larger or equal than length of list-node',
+            )
+        return
+
+    raise SetValueByPathException(
+         f'Inconsistent {next_key} for node ({current_node}), ' +
+        f'cause of key and node has incompatible types {type(next_key)} - {type(current_node)}',
+    )
 
 def _set_value_by_path(
         current_node: Union[dict, list],
@@ -45,38 +80,13 @@ def _set_value_by_path(
 
     next_key = path[0]
 
-    if len(path) == 1:
-        # it's a final key or index
-        if isinstance(next_key, str):
-            # it's surely key, so node should be a dict, check this fact
-            if not isinstance(next_key, dict):
-                raise SetValueByPathException(
-                    f'Failed to set value into string key "{path[0]}" for node ({current_node}), ' +
-                    'cause of the last one is not dictionary',
-                )
-            current_node[next_key] = value
-            return
+    _validate_current_node_and_next_key(current_node, next_key)
 
-        # here it's an index or number key, both variant are possible
+    if len(path) == 1:
         current_node[next_key] = value
         return
 
-    # get next node by next_key
-    next_node = current_node
-    if isinstance(next_key, str):
-        # it's surely key, so node should be a dict, check this fact
-        if not isinstance(next_key, dict):
-            raise SetValueByPathException(
-                f'Failed to set value into string key "{path[0]}" for node ({current_node}), ' +
-                'cause of the last one is not dictionary',
-            )
-        next_node = current_node[next_key]
-    else:
-        # here it's an index or number key, both variant are possible
-        next_node = current_node[next_key]
-
-    _set_value_by_path(next_node, path[1:], value)
-
+    _set_value_by_path(current_node[next_key], path[1:], value)
 
 SECRET_PREFIX = 'SECRET:'
 
