@@ -15,6 +15,7 @@ from telegram.ext import (
 )
 
 from components.config.config import config
+from components.notification_gateway.server import NGServer
 
 functionalities_help: str
 
@@ -46,6 +47,7 @@ def load_functionalities(app: Application):
                 continue
 
         try:
+            logging.info(f'[{path.name}]: Loading functionality into to bot')
             functionality = importlib.import_module(f'{functionalities_directory}.{path.name}')
             functionality.add_to_bot(app)
         except Exception:
@@ -53,6 +55,7 @@ def load_functionalities(app: Application):
             continue
 
         try:
+            logging.info(f'[{path.name}]: Plugging functionality helpstring into /help command')
             help_functionality_name, help_functionality_description = functionality.get_help_info()
             f_help.append((help_functionality_name, help_functionality_description))
         except AttributeError:
@@ -80,7 +83,7 @@ def get_enable_disable_functionalities_list() -> Tuple[str, List[str]]:
     """
     f: dict = config.data.get('functionalities', dict())
     if 'enable' in f:
-        return 'enable', f.get('enable')
+        return 'enable', f.get('enable', list())
     return 'disable', f.get('disable', list())
 
 
@@ -102,7 +105,10 @@ def main():
     logging.basicConfig(format=loggingFormat, level=logging.INFO)
 
     args = parse_args()
-    config.read_from_file(args.config)
+    if not config.read_from_file(args.config):
+        logging.error('Failed to read bot config')
+        exit(0)
+
     logging_level_from_conf = config.data.get('logging', {}).get('level', '')
     if logging_level_from_conf != "":
         level = logging.getLevelName(logging_level_from_conf)
@@ -115,11 +121,24 @@ def main():
     token_file = config.data.get('token_path', 'config/token')
     with open(token_file, 'r') as f:
         token = f.readline().strip()
+        logging.info('Token loaded from file')
 
+    # TODO add config check
+    logging.info('Starting notification gateway server')
+    ng_server = NGServer()
+    ng_server.start()
+
+    logging.info('Starting telegram bot itself')
     app = ApplicationBuilder().token(token).build()
     load_functionalities(app)
     app.add_handler(CommandHandler('help', functionalities_help_callback))
     app.run_polling()
+
+    logging.info('Stopping notification gateway server')
+    ng_server.stop()
+    logging.info('Notification Gatewaty server has stopped')
+
+
 
 
 if __name__ == '__main__':

@@ -10,5 +10,5 @@
             "level": "INFO"
         },
         "functionality": "config/functionality",
-        "bot_token": "SECRET:bot_token"
+        "token_path": "data/token"
 }

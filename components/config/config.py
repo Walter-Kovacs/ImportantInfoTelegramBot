@@ -202,6 +202,11 @@ class Config:
             ) from e
 
         for secret in secrets:
+            if secret.name_in_holder not in resolved_secret_names:
+                raise SecretsReplaceException(
+                    f'Secret with name {secret.name_in_holder} has not been resolved ' +
+                    f'check "get_secrets" method of current holder {type(secrets_holder)}'
+                )
             secret.value = resolved_secret_names[secret.name_in_holder]
 
         return secrets
@@ -240,8 +245,8 @@ class Config:
             except SecretsReplaceException:
                 logger.error('Failed to replace secret values of config %s', traceback.format_exc())
                 return False
-            except Exception as e:
-                logger.error("Caught unknown exception during loading the config %s", e)
+            except Exception:
+                logger.error("Caught unknown exception during loading the config %s", traceback.format_exc())
                 return False
         else:
             logger.info('Secrets not found in config, so loaded config already prepared')

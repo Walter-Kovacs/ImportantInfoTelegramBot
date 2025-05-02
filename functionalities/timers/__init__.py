@@ -1,6 +1,5 @@
 import logging
 import re
-import traceback
 import datetime
 from typing import Dict, List, Optional, Tuple
 from attrs import define
@@ -65,7 +64,7 @@ def validate_args(args: Optional[List[str]]) -> Tuple[int, str, Optional[str]]:
     (amount_str, modificator) = matched.groups()
     try:
         seconds = time_symbols_dict[modificator]
-    except KeyError as e:
+    except KeyError:
         logger.error(f'Time modificator "{modificator}" definition not found in time_symbols_dict {time_symbols_dict}')
         return (0, '', 'Что-то пошло не так')
 
@@ -152,7 +151,7 @@ async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_message.from_user
     if user is None:
         logger.error('from_user is None in effective_chat')
-        await update.effective_message.reply_text(f'Что-то пошло не так')
+        await update.effective_message.reply_text('Что-то пошло не так')
         return
 
     queue_key = f'{job_queue_pref}_{user.id}'
@@ -194,4 +193,4 @@ async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE):
             message=timer_message,
         ),
     )
-    await update.effective_message.reply_text(f'Таймер поставлен')
+    await update.effective_message.reply_text('Таймер поставлен')
