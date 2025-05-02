@@ -6,6 +6,8 @@ VERSION ?= $(COMMIT_TIME)-${BRANCH}-${COMMIT}
 
 IIBOT_INSTALL_WORKDIR ?= /usr/local/important_info_bot/
 
+# == BLOCK START ==
+# INSTALLATION AND VERSION SWITHING COMMANDS
 .PHONY: show_current_version
 show_current_version:
 	@echo ${VERSION}
@@ -26,15 +28,15 @@ install_venv:
 reload:
 	systemctl restart iibot
 
-
 .PHONY: test_install_image
 test_install_image:
 	docker build -t iibot_install -f scripts/install/test.Dockerfile .
 
-
 .PHONY: test_install
 test_install: test_install_image
 	docker run -v ${PWD}:/iibot --workdir /iibot iibot_install make install install_venv
+
+
 
 .PHONY: enable
 enable:
@@ -48,3 +50,15 @@ show_installed:
 .PHONY: deploy
 deploy: install install_venv enable reload
 	@systemctl status iibot
+# == BLOCK END ==
+
+# == BLOCK START ==
+# UNITTEST COMMANDS
+.PHONY: test_bot
+test_bot:
+	coverage erase
+	coverage run -m pytest -vvv
+	coverage report -m
+	coverage html
+# == BLOCK END ==
+
