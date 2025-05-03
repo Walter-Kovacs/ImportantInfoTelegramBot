@@ -13,7 +13,7 @@ class DictDB:
             json_data = json.load(f)
             cls._user_data = {int(tg_id): user_data for tg_id, user_data in json_data.items()}
 
-        print(f'users_db loaded from file sucessfully')
+        print('users_db loaded from file sucessfully')
 
     @classmethod
     def load_user_by_telegram_id(cls, tg_user_id: int) -> User:

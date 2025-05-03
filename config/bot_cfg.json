@@ -10,5 +10,12 @@
             "level": "INFO"
         },
         "functionality": "config/functionality",
+        "notification_gateway": {
+            "enabled": true,
+            "storage": {
+              "type": "jsonfile",
+              "filepath": "data/notification_gateway_subscriptions.json"
+            }
+        },
         "token_path": "data/token"
 }

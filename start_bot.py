@@ -126,12 +126,13 @@ def main():
     # TODO add config check
     logging.info('Starting notification gateway server')
     ng_server = NGServer()
-    ng_server.start()
 
     logging.info('Starting telegram bot itself')
     app = ApplicationBuilder().token(token).build()
     load_functionalities(app)
     app.add_handler(CommandHandler('help', functionalities_help_callback))
+    ng_server.start(telegram_bot=app.bot)
+
     app.run_polling()
 
     logging.info('Stopping notification gateway server')

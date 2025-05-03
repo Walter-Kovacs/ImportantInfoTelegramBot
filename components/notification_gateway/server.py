@@ -1,32 +1,39 @@
 import logging
-import json
-import threading
-from http.server import HTTPServer, ThreadingHTTPServer, BaseHTTPRequestHandler
+import traceback
+from aiohttp import web
+from components.notification_gateway.services.telegram_sender import TGSender
+from components.notification_gateway.objects import NotificationSource, NotificationSubscriber
+from telegram import Bot
 
 logger = logging.getLogger(__name__)
 
 PORT = 5054
 
-class NGHandler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        logger.info('I catch POST request')
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        data = json.loads(post_data)
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(f'I catched your message {data}'.encode())
+async def test_handler(request):
+    logger.info('I catch POST request')
+    data = await request.json()
+    try:
+        NGServer.telegram_sender.send_to_telegram(
+            NotificationSource(name="hardcode any source", secret=""),
+            f'I catched your message {data}'.encode(),
+            [NotificationSubscriber(tg_id=354628382)],
+        )
+        return web.Response(text="Message has been delivered")
+    except Exception:
+        logging.error(
+            "failed to send notification from source", 
+            traceback.format_exc(),
+        )
+        return web.Response(status=400, text="Message has not been delivered")
 
 class NGServer:
-    httpd: HTTPServer
+    telegram_sender: TGSender
 
-    def start(self):
-        server_addr = ('', PORT)
-        self.httpd = ThreadingHTTPServer(server_addr, NGHandler)
-        server_thread = threading.Thread(target=self.httpd.serve_forever)
+    def start(self, telegram_bot: Bot):
+        self.telegram_sender = TGSender(bot=telegram_bot)
+
+        http_server_app = web.Application()
+        http_server_app.add_routes([web.post('/', test_handler)])
+
         logging.info('Starting server in standalone thread')
-        server_thread.start()
-
-    def stop(self):
-        self.httpd.server_close()
-        self.httpd.shutdown()
+        web.run_app(http_server_app, port=PORT)
